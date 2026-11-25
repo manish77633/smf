@@ -285,7 +285,7 @@ export const draft: Draft = {
     baseUrl: "",
     defaultImage: "",
     favicon: "/images/smf.svg",
-    organization: "Shree Mahavir Fincorp",
+    organization: "Shree Mahavir Fincorp Credit Co-Operative Society Ltd.",
     logo: logo.image,
     details,
     profiles: [],
@@ -362,7 +362,7 @@ export const draft: Draft = {
       badge: "People",
       badgeAccent: "first.",
       badgeCopy: "Finance with understanding, not just numbers.",
-      body: "<p>At Shree Mahavir Fincorp, we believe financial support should begin with listening. Whether you’re planning for your family, growing a business or taking on a new project, we’re here to help you explore suitable lending options and understand the way ahead.</p><p>Our approach is built around clear communication, personal attention and making the process easier to navigate. Tell us what matters to you and we’ll help you understand your next steps.</p>",
+      body: "<p>Shree Mahavir Fincorp Credit Co-Operative Society Ltd. (SMF Finance) serves its members with personal, property and construction loans.</p><p>Our approach is built around clear communication, personal attention and making the process easier to navigate. Tell us what matters to you and we’ll help you understand your next steps.</p>",
       features: tiles([
         ["Customer-focused service", "Check"],
         ["Clear communication", "Check"],
