@@ -1,3 +1,4 @@
+import { sharedContactDetails } from "@/lib/contact-details";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,7 +8,6 @@ import { LoansMenu } from "./loans-menu";
 import {
   sortVisible,
   youtubeId,
-  type Content,
   type Action,
   type Item,
   type Heading,
@@ -106,60 +106,39 @@ const gridCard =
 const bubble = "grid shrink-0 place-items-center rounded-xl";
 const check =
   "grid size-5 shrink-0 place-items-center rounded-full bg-brand text-white";
-function ContactDetails({
-  data,
-  labels,
-  cards = false,
-  preview = false,
+export function SharedContactCards({
+  site,
+  officePath,
 }: {
-  data: Content<"contact">["details"];
-  labels?: string[];
-  cards?: boolean;
-  preview?: boolean;
+  site: Site;
+  officePath?: string;
 }) {
   return (
-    <div className={cards ? "mt-7 grid gap-3.5" : "grid gap-3"}>
-      {[
-        [data.email, "Mail", "mailto:" + data.email],
-        [data.phone, "Phone", "tel:" + data.phone.replace(/[^+\d]/g, "")],
-        [data.address, "MapPin", ""],
-      ].map(
-        ([value, icon, url], index) =>
-          (value || preview || cards) && (
-            <div
-              key={icon}
-              className={
-                cards
-                  ? "panel flex items-center gap-3.5 p-4"
-                  : "flex items-start gap-2.5"
-              }
-            >
-              <span
-                className={
-                  cards ? bubble + " size-10 bg-softblue text-navy" : "mt-0.5"
-                }
-              >
-                <Icon name={icon} size={cards ? 18 : 13} />
-              </span>
-              <div className="min-w-0 break-words">
-                {labels?.[index] && (
-                  <p className="mb-1 text-sm font-extrabold">{labels[index]}</p>
-                )}
-                {value && url ? (
-                  <a href={url} className="hover:underline">
-                    {value}
-                  </a>
-                ) : (
-                  value || (
-                    <span className="text-xs opacity-75">
-                      Awaiting verified details
-                    </span>
-                  )
-                )}
-              </div>
-            </div>
-          ),
-      )}
+    <div className="mt-6 grid gap-3">
+      {sharedContactDetails(site, officePath).map((item, i) => (
+        <SiteLink
+          key={item.icon}
+          href={item.url}
+          className="panel lift-card flex items-start gap-3 p-4 hover:border-navy/35"
+        >
+          <span
+            className={
+              "grid size-10 shrink-0 place-items-center rounded-lg " +
+              (i % 2 ? "bg-softred text-brand" : "bg-softblue text-navy")
+            }
+          >
+            <Icon name={item.icon} size={17} />
+          </span>
+          <span className="min-w-0">
+            <strong className="block text-sm font-extrabold">
+              {item.label}
+            </strong>
+            <span className="mt-1 block break-words text-sm text-muted">
+              {item.value}
+            </span>
+          </span>
+        </SiteLink>
+      ))}
     </div>
   );
 }
@@ -447,12 +426,22 @@ const sectionViews: SectionViews = {
       </section>
     );
   },
-  statistics(s, _site, preview) {
+  statistics(s, site, preview) {
     const d = s.content;
-    const items = preview
+    const configured = preview
       ? d.items.slice().sort((a, b) => a.order - b.order)
       : sortVisible(d.items).filter((i) => i.verified);
-    if (!items.length) return null;
+    const items = configured.length
+      ? configured
+      : [
+          { label: "Years of experience", value: "—" },
+          { label: "Customers supported", value: "—" },
+          {
+            label: "Loan solutions",
+            value: String(sortVisible(site.records.loans).length),
+          },
+          { label: "Service locations", value: "—" },
+        ].map((item) => ({ ...item, verified: true, prefix: "", suffix: "" }));
     return (
       <section id="statistics" className="band bg-navy text-white">
         <div className="wrap [&_.copy]:text-blue-100 [&_.eyebrow]:text-[#ff757d]">
@@ -485,10 +474,21 @@ const sectionViews: SectionViews = {
   },
   videos(s, site, preview) {
     const r = site.records;
-    const items = preview
+    const published = preview
       ? r.videos
       : sortVisible(r.videos).filter((i) => youtubeId(i.youtube));
-    if (!items.length) return null;
+    const items = published.length
+      ? published
+      : [
+          "Understanding your loan options",
+          "Plan your next financial step",
+          "Your questions, answered",
+        ].map((title) => ({
+          title,
+          description: "Video coming soon",
+          youtube: "",
+          thumbnail: { image: "", alt: "" },
+        }));
     return (
       <section id="videos" className="band">
         <div className="wrap">
@@ -521,10 +521,9 @@ const sectionViews: SectionViews = {
       </section>
     );
   },
-  testimonials(s, site, preview) {
+  testimonials(s, site) {
     const r = site.records;
     const items = sortVisible(r.testimonials).filter((i) => i.consent);
-    if (!items.length && !preview) return null;
     return (
       <section id="stories" className="band bg-tint">
         <div className="wrap">
@@ -696,7 +695,7 @@ const sectionViews: SectionViews = {
       </section>
     );
   },
-  contact(s, site, preview) {
+  contact(s, site) {
     const { recipient, ...d } = s.content;
     void recipient;
     return (
@@ -704,12 +703,7 @@ const sectionViews: SectionViews = {
         <div className="wrap grid items-start gap-8 lg:grid-cols-[.67fr_1fr] lg:gap-[5%]">
           <div>
             <Intro data={d} />
-            <ContactDetails
-              data={d.details}
-              labels={[d.emailLabel, d.phoneLabel, d.addressLabel]}
-              cards
-              preview={preview}
-            />
+            <SharedContactCards site={site} />
           </div>
           <div className="panel p-5 shadow-[0_14px_35px_#0626530b] sm:p-7 xl:p-8">
             <EnquiryForm config={d} options={loanOptions(site)} />
@@ -736,30 +730,8 @@ const sectionViews: SectionViews = {
   },
   footer(s, site) {
     const d = s.content;
-    const shared = site.sections.find((section) => section.type === "contact")
-      ?.content.details;
-    const email = d.details.email || shared?.email || "",
-      phone = d.details.phone || shared?.phone || "",
-      address = d.details.address || shared?.address || "";
     const contacts = [
-      {
-        icon: "Mail",
-        label: "",
-        value: email || "Email available on enquiry",
-        url: email ? "mailto:" + email : "",
-      },
-      {
-        icon: "Phone",
-        label: "",
-        value: phone || "Phone number to be confirmed",
-        url: phone ? "tel:" + phone.replace(/[^+\d]/g, "") : "",
-      },
-      {
-        icon: "MapPin",
-        label: "",
-        value: address || "Office address to be confirmed, India",
-        url: "",
-      },
+      ...sharedContactDetails(site).map((item) => ({ ...item, label: "" })),
       ...sortVisible(d.contactFields || []),
     ];
     return (
@@ -824,7 +796,7 @@ const sectionViews: SectionViews = {
                     {col.description}
                   </p>
                 )}
-                <ul className="grid gap-2.5 text-sm md:text-base">
+                <ul className="grid gap-2.5 text-sm md:text-base [&_a]:font-normal [&_button]:font-normal">
                   {sortVisible(col.links).map((link, j) => (
                     <li key={j}>
                       {link.enquiry || link.url ? (
@@ -930,9 +902,7 @@ export function Home({
     : undefined;
   const whatsapp = site.settings.whatsapp;
   const display = site.sections.filter((s) => s.visible);
-  const stories =
-    display.some((s) => s.type === "testimonials") &&
-    (preview || site.records.testimonials.some((i) => i.visible && i.consent));
+  const stories = display.some((s) => s.type === "testimonials");
   const storyLink = <T extends { url: string }>(item: T): T =>
     item.url === "#stories" && !stories ? { ...item, url: "#about" } : item;
   const firstContent = display.findIndex(

@@ -8,6 +8,7 @@ import {
   Images,
   PanelBottom,
   PanelTop,
+  ContactRound,
   Mail,
   Settings,
   UserRound,
@@ -19,6 +20,7 @@ const links = [
   ["/admin/cms?tab=loans", "Loan Cards", Landmark],
   ["/admin/media", "Media Library", Images],
   ["/admin/cms?tab=header", "Shared Header", PanelTop],
+  ["/admin/cms?tab=contact", "Contact Details", ContactRound],
   ["/admin/cms?tab=footer", "Shared Footer", PanelBottom],
   ["/admin/enquiries", "Enquiries", Mail],
   ["/admin/cms?tab=general", "Site Settings", Settings],
@@ -38,7 +40,9 @@ export default function AdminNavigation() {
           : href === "/admin/pages"
             ? pathname.startsWith("/admin/pages") ||
               (pathname === "/admin/cms" &&
-                !["loans", "header", "footer", "general"].includes(tab || ""))
+                !["loans", "header", "footer", "contact", "general"].includes(
+                  tab || "",
+                ))
             : pathname === href;
         return (
           <Link

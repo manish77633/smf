@@ -1,4 +1,5 @@
 "use client";
+import { businessDetails } from "@/lib/contact-details";
 import dynamic from "next/dynamic";
 import { useEffect, useState, useTransition } from "react";
 import {
@@ -733,12 +734,33 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
             onChange={(e) => editSection(section.id, { label: e.target.value })}
           />
         </label>
+        {section.type === "footer" && (
+          <p className="mb-3 text-sm text-muted">
+            Phone, email, office address and hours are managed in{" "}
+            <Link className="font-bold underline" href="/admin/cms?tab=contact">
+              Contact Details
+            </Link>
+            .
+          </p>
+        )}
+        {section.type === "contact" && (
+          <p className="mb-3 text-sm text-muted">
+            Publishing these details updates the homepage, Contact page and
+            shared footer.
+          </p>
+        )}
         <Row
-          schema={sections[section.type]}
+          schema={
+            section.type === "footer"
+              ? sections.footer.omit({ details: true })
+              : sections[section.type]
+          }
           value={
             section.type === "header"
               ? { loanMenu: true, loanMenuUrl: "/services", ...section.content }
-              : section.content
+              : section.type === "contact"
+                ? { ...section.content, details: businessDetails(doc) }
+                : section.content
           }
           onChange={(v) =>
             editSection(section.id, { content: v as Section["content"] })
@@ -926,7 +948,7 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
               schema={
                 active === "whatsapp"
                   ? globals.shape.whatsapp
-                  : globals.omit({ whatsapp: true })
+                  : globals.omit({ whatsapp: true, details: true })
               }
               value={
                 active === "whatsapp" ? doc.settings.whatsapp : doc.settings

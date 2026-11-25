@@ -69,12 +69,10 @@ const fields = {
   contactForm: introOnly.extend({
     ...pageBlock.pick({ cardTitle: true, note: true }).shape,
     form: formFields,
-    contactCards: pageBlock.shape.contactCards.unwrap(),
   }),
   officeMap: introOnly.extend({
     ...pageBlock.pick({
       cardTitle: true,
-      cardCopy: true,
       icon: true,
       note: true,
       cta: true,
@@ -324,6 +322,19 @@ export default function PageEditor({
                       }
                     />
                   </label>
+                  {(block.type === "contactForm" ||
+                    block.type === "officeMap") && (
+                    <p className="text-xs text-muted">
+                      Edit phone, email, address and opening hours in{" "}
+                      <Link
+                        className="font-bold underline"
+                        href="/admin/cms?tab=contact"
+                      >
+                        Contact Details
+                      </Link>
+                      .
+                    </p>
+                  )}
                   {block.type === "services" ? (
                     <>
                       <Row

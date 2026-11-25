@@ -1,3 +1,4 @@
+import { businessDetails } from "./contact-details";
 import type { Metadata } from "next";
 import type { Site } from "./content";
 export function baseUrl(site?: Site | null) {
@@ -62,6 +63,7 @@ export function homeMetadata(site: Site): Metadata {
   };
 }
 export function structured(site: Site) {
+  const details = businessDetails(site);
   const s = site.settings,
     base = baseUrl(site);
   const questions = site.sections.some(
@@ -77,16 +79,16 @@ export function structured(site: Site) {
     "@graph": [
       {
         "@type":
-          s.details.phone && s.details.address
+          details.phone && details.address
             ? ["Organization", "FinancialService"]
             : "Organization",
         "@id": base + "/#organization",
         name: s.organization,
         url: base,
         logo: s.logo ? new URL(s.logo, base).href : undefined,
-        telephone: s.details.phone || undefined,
-        email: s.details.email || undefined,
-        address: s.details.address || undefined,
+        telephone: details.phone || undefined,
+        email: details.email || undefined,
+        address: details.address || undefined,
         sameAs: s.profiles.filter((v) => v.startsWith("https://")),
       },
       {

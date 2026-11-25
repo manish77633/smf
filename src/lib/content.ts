@@ -167,7 +167,11 @@ export const sections = {
   blogs: heading.extend({ caption: text }),
   faqs: heading.extend({ supportTitle: text, supportCopy: copy, cta: action }),
   contact: heading.extend({
-    details: contact,
+    details: contact.extend({
+      hours: text.optional(),
+      directions: link.optional(),
+    }),
+    hoursLabel: text.optional(),
     emailLabel: text,
     phoneLabel: text,
     addressLabel: text,

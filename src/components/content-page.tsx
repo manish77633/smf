@@ -1,6 +1,8 @@
+import { businessDetails } from "@/lib/contact-details";
 import Link from "next/link";
 import {
   Icon,
+  SharedContactCards,
   Intro,
   Picture,
   loanCardAction,
@@ -108,33 +110,7 @@ function Block({
         <div className="wrap grid items-start gap-8 lg:grid-cols-[.7fr_1fr] lg:gap-[4%]">
           <div>
             <Intro data={d} />
-            <div className="mt-6 grid gap-3">
-              {sortVisible(b.contactCards || []).map((item, i) => (
-                <article key={i} className="panel flex items-start gap-3 p-4">
-                  <span
-                    className={
-                      "grid size-9 shrink-0 place-items-center rounded-lg " +
-                      (i % 2
-                        ? "bg-softred text-brand"
-                        : "bg-softblue text-navy")
-                    }
-                  >
-                    <Icon name={item.icon} size={16} />
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-extrabold">{item.title}</h3>
-                    <p className="mt-1 break-words text-xs leading-relaxed text-muted">
-                      {item.description}
-                    </p>
-                    <LinkButton
-                      action={item.cta}
-                      source="contact-page"
-                      kind="text"
-                    />
-                  </div>
-                </article>
-              ))}
-            </div>
+            <SharedContactCards site={site} officePath="#office-location" />
             {b.note && (
               <p className="mt-3 border-l border-brand bg-tint p-3 text-xs leading-relaxed text-muted">
                 {b.note}
@@ -158,14 +134,17 @@ function Block({
   }
   if (b.type === "officeMap") {
     return (
-      <section className="band bg-tint">
+      <section id="office-location" className="band bg-tint">
         <div className="wrap">
           <Intro data={d} />
           <div className="panel mt-7 overflow-hidden shadow-[0_12px_35px_#0626530c]">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule px-5 py-4">
               <div>
                 <h3 className="font-extrabold">{b.cardTitle}</h3>
-                <p className="mt-1 text-sm text-muted">{b.cardCopy}</p>
+                <p className="mt-1 text-sm text-muted">
+                  {businessDetails(site).address ||
+                    "Office address to be confirmed"}
+                </p>
               </div>
               <LinkButton action={b.cta} source="contact-page" kind="outline" />
             </div>
@@ -514,8 +493,9 @@ export function ContentPage({
               ? "/services"
               : "/" +
                 (action.url === "#stories" &&
-                !site.records.testimonials.some(
-                  (item) => item.visible && item.consent,
+                !site.sections.some(
+                  (section) =>
+                    section.type === "testimonials" && section.visible,
                 )
                   ? "#about"
                   : action.url),

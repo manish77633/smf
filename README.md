@@ -51,6 +51,10 @@ Open **Pages** to edit the homepage, **Our Loan Services** at `/services`, **Bus
 - Configure page SEO in **SEO Management** and defaults, verification, organization details, and redirects in **General Settings**. Add the public WhatsApp number with the country code, using digits only.
 - Publish statistics after confirming their values. Publish testimonials after obtaining consent. Add relevant, approved YouTube videos before making them visible. Public article cards open inline because public article routes are outside this phase.
 
+## Shared business contact details
+
+Open **Admin → Contact Details** and publish the phone, email, office address, opening hours and optional directions URL. These fields are shared by the homepage, Contact page and footer.
+
 ## Deploy to Vercel
 
 1. Create the Atlas database and configure network access for the deployment. Seed the production database and create the initial administrator from a trusted local terminal using production environment values.
@@ -59,6 +63,12 @@ Open **Pages** to edit the homepage, **Our Loan Services** at `/services`, **Bus
 4. Deploy the latest commit after setting the production environment variables. Verify the homepage, sign-in, `/sitemap.xml`, `/robots.txt`, enquiry storage and email delivery on the deployed domain.
 
 [Next.js installation and runtime](https://nextjs.org/docs/app/getting-started/installation) · [Auth.js credentials provider](https://authjs.dev/getting-started/authentication/credentials)
+
+### Admin login on Vercel
+
+Set `MONGODB_URI`, `AUTH_SECRET`, `AUTH_URL` and `NEXT_PUBLIC_SITE_URL` for the **Production** environment and redeploy. Use a reachable MongoDB Atlas database. For the deployed domain, both URL values should be HTTPS origins with no page path. Generate a separate random production secret using the command above.
+
+To populate the CMS and create an administrator, run `npm run seed` and `npm run admin:create` from a trusted terminal with the same Atlas `MONGODB_URI`. Supply `ADMIN_EMAIL` and a password of at least 14 characters in that terminal for administrator creation. The password is hashed in MongoDB, and the creation command leaves an existing administrator unchanged.
 
 ## Project structure
 
