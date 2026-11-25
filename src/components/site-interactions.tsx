@@ -184,12 +184,12 @@ export function FloatingActions({
   const base =
     "size-11 place-items-center rounded-full text-white shadow-lg motion-safe:transition-transform motion-safe:hover:-translate-y-0.5";
   const contactStyle =
-    "whatsapp-shortcut isolate size-14 place-items-center rounded-full border-2 border-white bg-[#16b961] text-white shadow-lg hover:bg-[#109d52] " +
+    "size-14 place-items-center rounded-full border-2 border-white bg-[#16b961] text-white shadow-lg hover:bg-[#109d52] " +
     (whatsapp.mobile ? "grid" : "hidden") +
     (whatsapp.desktop ? " md:grid" : " md:hidden") +
     (whatsapp.position === "left"
       ? " fixed left-4 bottom-[max(1rem,env(safe-area-inset-bottom))]"
-      : " relative");
+      : "");
   const title = whatsapp.tooltip || "Chat on WhatsApp";
   return (
     <div

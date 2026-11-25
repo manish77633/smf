@@ -766,7 +766,7 @@ const sectionViews: SectionViews = {
         id="site-footer"
         className="relative border-t-4 border-brand bg-ink pt-11 pb-16 text-blue-100 sm:pb-0 md:pt-16"
       >
-        <div className="wrap max-w-[1476px] xl:w-[82%]">
+        <div className="wrap">
           <div className="grid grid-cols-2 gap-x-4 gap-y-7 sm:gap-x-7 lg:grid-cols-[1.48fr_.88fr_1fr_1.09fr]">
             <div className="col-span-2 min-w-0 lg:col-span-1">
               <Link

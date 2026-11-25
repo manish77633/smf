@@ -32,7 +32,7 @@
     transform: translateX(var(--initial-slide));
   }
   .wrap {
-    @apply mx-auto w-[89%] max-w-[1280px];
+    @apply mx-auto w-[89%] lg:w-4/5;
   }
   .band {
     @apply py-14 md:py-[clamp(76px,7.8vw,120px)];
@@ -212,10 +212,6 @@
   }
 }
 
-.public-site .reference-section {
-  max-width: 1480px;
-}
-
 .public-site .reference-section .title {
   font-family: var(--public-font), sans-serif;
   font-size: clamp(2rem, 3.4vw, 3.6rem);
@@ -268,35 +264,5 @@
   }
   to {
     transform: translate3d(5%, -5%, 0) rotate(4deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .whatsapp-shortcut::before {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    z-index: -1;
-    pointer-events: none;
-    border: 2px solid #22c96e;
-    border-radius: inherit;
-    box-shadow: 0 0 13px #24db78a0;
-    opacity: 0;
-    animation: whatsapp-rise 3.4s ease-out infinite;
-  }
-}
-
-@keyframes whatsapp-rise {
-  0% {
-    opacity: 0;
-    transform: translateY(0) scale(0.98);
-  }
-  14% {
-    opacity: 0.75;
-  }
-  62%,
-  100% {
-    opacity: 0;
-    transform: translateY(-12px) scale(1.46);
   }
 }
