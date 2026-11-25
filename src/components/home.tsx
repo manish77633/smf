@@ -21,7 +21,6 @@ import {
   Article,
   Carousel,
   EnquiryForm,
-  EnquiryProvider,
   FloatingActions,
   SiteLink,
   LinkButton,
@@ -162,7 +161,7 @@ const sectionViews: SectionViews = {
           </span>
           <span className="hidden items-center gap-2 sm:flex">
             {d.right}
-            <LinkButton action={d.cta} source="bar" kind="plain" />
+            <LinkButton action={d.cta} kind="plain" />
           </span>
         </div>
       </div>
@@ -191,7 +190,6 @@ const sectionViews: SectionViews = {
           <LinkButton
             key={index}
             action={item}
-            source="header"
             kind="plain"
             navigation
             arrow={false}
@@ -200,13 +198,8 @@ const sectionViews: SectionViews = {
       );
     const buttons = (
       <>
-        <LinkButton
-          action={d.outline}
-          kind="outline"
-          source="header"
-          arrow={false}
-        />
-        <LinkButton action={d.primary} source="header" />
+        <LinkButton action={d.outline} kind="outline" arrow={false} />
+        <LinkButton action={d.primary} />
       </>
     );
     return (
@@ -281,11 +274,7 @@ const sectionViews: SectionViews = {
                         {item.intro.description}
                       </p>
                       <div className="mt-7">
-                        <LinkButton
-                          action={item.cta}
-                          source="hero"
-                          loan={item.cta.url.replace(/^#/, "")}
-                        />
+                        <LinkButton action={item.cta} />
                       </div>
                       <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-bold">
                         {sortVisible(item.trust).map((t, i) => (
@@ -307,7 +296,7 @@ const sectionViews: SectionViews = {
                         {item.advisor.description}
                       </p>
                       <div className="my-5">
-                        <LinkButton action={item.advisorCta} source="advisor" />
+                        <LinkButton action={item.advisorCta} />
                       </div>
                       <p className="text-xs leading-relaxed text-muted">
                         {item.disclaimer}
@@ -375,12 +364,7 @@ const sectionViews: SectionViews = {
                 <p className="mb-4 text-sm leading-relaxed text-muted">
                   {item.description}
                 </p>
-                <LinkButton
-                  action={loanCardAction(item)}
-                  kind="text"
-                  source="loan"
-                  loan={item.slug}
-                />
+                <LinkButton action={loanCardAction(item)} kind="text" />
               </article>
             ))}
           </div>
@@ -424,7 +408,7 @@ const sectionViews: SectionViews = {
                 </li>
               ))}
             </ul>
-            <LinkButton action={d.cta} source="about" />
+            <LinkButton action={d.cta} />
           </div>
         </div>
       </section>
@@ -702,7 +686,7 @@ const sectionViews: SectionViews = {
               <p className="my-3 text-sm leading-relaxed text-blue-100">
                 {d.supportCopy}
               </p>
-              <LinkButton action={d.cta} source="faq" />
+              <LinkButton action={d.cta} />
             </div>
           </div>
           <div className="border-t border-rule">
@@ -743,8 +727,8 @@ const sectionViews: SectionViews = {
             <Intro data={d} />
             <SharedContactCards site={site} />
           </div>
-          <div className="panel p-5 shadow-[0_14px_35px_#0626530b] sm:p-7 xl:p-8">
-            <EnquiryForm config={d} options={loanOptions(site)} />
+          <div className="panel p-5 shadow-[0_14px_35px_#0626530b] sm:p-7 lg:flex lg:self-stretch xl:p-8">
+            <EnquiryForm config={d} options={loanOptions(site)} stretch />
           </div>
         </div>
       </section>
@@ -761,7 +745,7 @@ const sectionViews: SectionViews = {
             </h2>
             <p className="mt-2 text-sm md:text-base">{d.description}</p>
           </div>
-          <LinkButton action={d.cta} kind="white" source="banner" />
+          <LinkButton action={d.cta} kind="white" />
         </div>
       </section>
     );
@@ -838,13 +822,7 @@ const sectionViews: SectionViews = {
                   {sortVisible(col.links).map((link, j) => (
                     <li key={j}>
                       {link.enquiry || link.url ? (
-                        <LinkButton
-                          action={link}
-                          source="footer"
-                          loan={link.url.replace(/^#/, "")}
-                          kind="plain"
-                          arrow={false}
-                        />
+                        <LinkButton action={link} kind="plain" arrow={false} />
                       ) : (
                         <span>{link.label}</span>
                       )}
@@ -931,13 +909,6 @@ export function Home({
   site: Site;
   preview?: boolean;
 }) {
-  const contact = site.sections.find((s) => s.type === "contact")?.content;
-  const config = contact
-    ? (({ recipient, ...rest }) => {
-        void recipient;
-        return rest;
-      })(contact)
-    : undefined;
   const whatsapp = site.settings.whatsapp;
   const display = site.sections.filter((s) => s.visible);
   const stories = display.some((s) => s.type === "testimonials");
@@ -978,29 +949,27 @@ export function Home({
   ));
   return (
     <div id="home" className="public-site">
-      <EnquiryProvider config={config} options={loanOptions(site)}>
-        <a
-          className="sr-only z-50 focus:not-sr-only focus:absolute focus:bg-white focus:p-3"
-          href="#main"
-        >
-          Skip to content
-        </a>
-        {scoped.slice(0, Math.max(0, firstContent))}
-        <main id="main">
-          {!display.some(
-            (s) => s.type === "hero" && s.content.slides.some((i) => i.visible),
-          ) && <h1 className="sr-only">{site.settings.websiteName}</h1>}
-          {scoped.slice(Math.max(0, firstContent), lastContent)}
-        </main>
-        {scoped.slice(lastContent)}
-        <FloatingActions
-          whatsapp={whatsapp}
-          backToTop={
-            site.sections.find((section) => section.type === "footer")?.content
-              .backToTop !== false
-          }
-        />
-      </EnquiryProvider>
+      <a
+        className="sr-only z-50 focus:not-sr-only focus:absolute focus:bg-white focus:p-3"
+        href="#main"
+      >
+        Skip to content
+      </a>
+      {scoped.slice(0, Math.max(0, firstContent))}
+      <main id="main">
+        {!display.some(
+          (s) => s.type === "hero" && s.content.slides.some((i) => i.visible),
+        ) && <h1 className="sr-only">{site.settings.websiteName}</h1>}
+        {scoped.slice(Math.max(0, firstContent), lastContent)}
+      </main>
+      {scoped.slice(lastContent)}
+      <FloatingActions
+        whatsapp={whatsapp}
+        backToTop={
+          site.sections.find((section) => section.type === "footer")?.content
+            .backToTop !== false
+        }
+      />
     </div>
   );
 }

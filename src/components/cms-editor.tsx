@@ -59,6 +59,7 @@ type Props = {
 const fieldLabels: Record<string, string> = {
   visible: "Show on website",
   example: "Demo testimonial",
+  enquiry: "Open company enquiry form",
   directions: "Directions address or maps link",
   verified: "Figure is verified",
   eyebrow: "Small heading above title",
@@ -574,8 +575,8 @@ function LoanCards({
             </button>
           </div>
           <p className="text-xs text-muted">
-            Leave the button URL blank to open the loan detail page. Select
-            Enquiry to open the enquiry form.
+            Leave the button URL blank to open the loan detail page. Select Open
+            company enquiry form to send visitors to the company form.
           </p>
           <Row
             name="Loan card"

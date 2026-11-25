@@ -1,7 +1,5 @@
 "use client";
 import {
-  createContext,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -34,67 +32,13 @@ import {
 type Source = z.input<typeof enquirySchema>["source"];
 type Options = { value: string; label: string }[];
 export type FormCopy = Omit<Content<"contact">, "recipient">;
-const Modal = createContext<(source: Source, loan?: string) => void>(() => {});
-export function EnquiryProvider({
-  config,
-  options,
-  children,
-}: {
-  config?: FormCopy;
-  options: Options;
-  children: ReactNode;
-}) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const [form, setForm] = useState<{
-    source: Source;
-    loan: string;
-    key: number;
-  }>();
-  return (
-    <Modal.Provider
-      value={(source, loan = "") => {
-        if (!config) return;
-        setForm({ source, loan, key: Date.now() });
-        ref.current?.showModal();
-      }}
-    >
-      {children}
-      {config && (
-        <dialog
-          className="panel m-auto max-h-[90dvh] w-[min(92vw,570px)] overflow-y-auto p-6 shadow-xl backdrop:bg-ink/70 sm:p-8"
-          ref={ref}
-          aria-labelledby="enquiry-title"
-          onClick={(e) => {
-            if (e.target === ref.current) ref.current?.close();
-          }}
-        >
-          <button
-            className="arrow absolute top-4 right-4"
-            aria-label="Close enquiry"
-            onClick={() => ref.current?.close()}
-          >
-            <X size={19} />
-          </button>
-          {form && (
-            <EnquiryForm
-              key={form.key}
-              config={config}
-              options={options}
-              source={form.source}
-              initialLoan={form.loan}
-              modal
-              onSuccess={() => ref.current?.close()}
-            />
-          )}
-        </dialog>
-      )}
-    </Modal.Provider>
-  );
-}
+const companyEnquiryUrl = "https://smfincorplead.ditionline.com/";
 type SiteLinkProps = Omit<ComponentPropsWithoutRef<"a">, "href"> & {
   href: string;
 };
 export function SiteLink({ href, ...props }: SiteLinkProps) {
+  if (["#contact", "/#contact", "/contact#contact"].includes(href))
+    href = companyEnquiryUrl;
   return /^\/(?!\/)/.test(href) && !props.download ? (
     <Link href={href} {...props} />
   ) : (
@@ -103,28 +47,24 @@ export function SiteLink({ href, ...props }: SiteLinkProps) {
 }
 export function LinkButton({
   action,
-  source = "contact",
-  loan,
   kind = "primary",
   arrow = true,
   navigation = false,
 }: {
   action: Action;
-  source?: Source;
-  loan?: string;
   kind?: "primary" | "outline" | "white" | "text" | "plain";
   arrow?: boolean;
   navigation?: boolean;
 }) {
-  const open = useContext(Modal);
   const pathname = usePathname();
-  const current = navigation && !action.enquiry && action.url === pathname;
+  const url =
+    action.enquiry || /^apply\b/i.test(action.label.trim())
+      ? companyEnquiryUrl
+      : action.url;
+  const current = navigation && url === pathname;
   const parent =
-    navigation &&
-    !action.enquiry &&
-    action.url === "/services" &&
-    pathname === "/business-loan";
-  if (!action.label || (!action.enquiry && !action.url)) return null;
+    navigation && url === "/services" && pathname === "/business-loan";
+  if (!action.label || !url) return null;
   const style = {
     primary: "button",
     outline:
@@ -144,14 +84,10 @@ export function LinkButton({
         ))}
     </>
   );
-  return action.enquiry ? (
-    <button type="button" className={style} onClick={() => open(source, loan)}>
-      {label}
-    </button>
-  ) : (
+  return (
     <SiteLink
       className={style + (current || parent ? " text-brand" : "")}
-      href={action.url}
+      href={url}
       aria-current={current ? "page" : undefined}
     >
       {label}
@@ -179,7 +115,6 @@ export function FloatingActions({
   whatsapp: Settings["whatsapp"];
 }) {
   const [scrolled, setScrolled] = useState(false);
-  const open = useContext(Modal);
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let settling: "top" | "bottom" | undefined;
@@ -295,15 +230,14 @@ export function FloatingActions({
         </a>
       ) : (
         fallback && (
-          <button
+          <a
             className={contactStyle}
-            type="button"
-            title="WhatsApp number unavailable. Open enquiry"
-            aria-label="WhatsApp number unavailable. Open enquiry"
-            onClick={() => open("contact")}
+            href={companyEnquiryUrl}
+            title="Open company enquiry form"
+            aria-label="Open company enquiry form"
           >
             <WhatsAppMark />
-          </button>
+          </a>
         )
       )}
     </div>
@@ -649,18 +583,14 @@ export function EnquiryForm({
   config: c,
   options,
   source = "contact",
-  initialLoan = "",
-  modal = false,
+  stretch = false,
   wideButton = false,
-  onSuccess,
 }: {
   config: FormCopy;
   options: Options;
   source?: Source;
-  initialLoan?: string;
-  modal?: boolean;
+  stretch?: boolean;
   wideButton?: boolean;
-  onSuccess?: () => void;
 }) {
   const {
     register,
@@ -678,7 +608,7 @@ export function EnquiryForm({
       name: "",
       phone: "",
       email: "",
-      loan: options.some((o) => o.value === initialLoan) ? initialLoan : "",
+      loan: "",
       message: "",
       consent: false,
       website: "",
@@ -691,13 +621,8 @@ export function EnquiryForm({
     ["email", c.emailLabelForm, c.emailPlaceholder, "email", "email"],
   ] as const;
   return (
-    <div>
-      <h2
-        id={modal ? "enquiry-title" : undefined}
-        className="mb-2 pr-8 text-lg font-extrabold"
-      >
-        {c.formTitle}
-      </h2>
+    <div className={stretch ? "lg:flex lg:flex-1 lg:flex-col" : undefined}>
+      <h2 className="mb-2 text-lg font-extrabold">{c.formTitle}</h2>
       <p className="mb-5 text-sm text-muted">{c.formCopy}</p>
       <form
         noValidate
@@ -719,14 +644,18 @@ export function EnquiryForm({
                 : result.message || c.success,
             );
             reset();
-            onSuccess?.();
           } catch {
             setError("root", {
               message: "Connection failed. Please try again.",
             });
           }
         })}
-        className="grid gap-3 sm:grid-cols-2"
+        className={
+          "grid gap-3 sm:grid-cols-2" +
+          (stretch
+            ? " lg:flex-1 lg:grid-rows-[auto_auto_minmax(6rem,1fr)]"
+            : "")
+        }
       >
         {fields.map(([key, label, placeholder, type, autoComplete]) => (
           <label key={key} className="space-y-1 text-xs font-extrabold">
@@ -769,10 +698,17 @@ export function EnquiryForm({
             </span>
           )}
         </label>
-        <label className="space-y-1 text-xs font-extrabold sm:col-span-2">
+        <label
+          className={
+            "space-y-1 text-xs font-extrabold sm:col-span-2" +
+            (stretch ? " lg:flex lg:flex-col" : "")
+          }
+        >
           {c.messageLabel}
           <textarea
-            className="field min-h-24 font-normal"
+            className={
+              "field min-h-24 font-normal" + (stretch ? " lg:flex-1" : "")
+            }
             placeholder={c.messagePlaceholder}
             maxLength={1500}
             {...register("message")}

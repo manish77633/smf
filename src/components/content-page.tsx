@@ -10,7 +10,6 @@ import {
 } from "@/components/home";
 import {
   EnquiryForm,
-  EnquiryProvider,
   FloatingActions,
   LinkButton,
 } from "@/components/site-interactions";
@@ -30,13 +29,7 @@ function Block({
 }) {
   const d = b.intro,
     items = sortVisible(b.items);
-  const cta = (
-    <LinkButton
-      action={b.cta}
-      source="services"
-      loan={b.cta.enquiry ? b.cta.url.replace(/^#/, "") : undefined}
-    />
-  );
+  const cta = <LinkButton action={b.cta} />;
   if (b.type === "breadcrumb")
     return (
       <nav aria-label="Breadcrumb" className="border-b border-rule">
@@ -118,12 +111,13 @@ function Block({
             )}
           </div>
           {config && (
-            <div className="panel p-5 shadow-[0_12px_35px_#0626530c] md:p-7">
+            <div className="panel p-5 shadow-[0_12px_35px_#0626530c] md:p-7 lg:flex lg:flex-col lg:self-stretch">
               {b.cardTitle && <p className="eyebrow">{b.cardTitle}</p>}
               <EnquiryForm
                 config={config}
                 options={loanOptions(site)}
                 source="contact-page"
+                stretch
                 wideButton
               />
             </div>
@@ -160,11 +154,7 @@ function Block({
                   {address || "Office address to be confirmed"}
                 </p>
               </div>
-              <LinkButton
-                action={directions}
-                source="contact-page"
-                kind="outline"
-              />
+              <LinkButton action={directions} kind="outline" />
             </div>
             {mapUrl ? (
               <iframe
@@ -246,12 +236,7 @@ function Block({
                   {loan.description}
                 </p>
                 <div className="mt-auto">
-                  <LinkButton
-                    action={loanCardAction(loan)}
-                    source="services"
-                    loan={loan.slug}
-                    kind="text"
-                  />
+                  <LinkButton action={loanCardAction(loan)} kind="text" />
                 </div>
               </article>
             ))}
@@ -500,13 +485,6 @@ export function ContentPage({
   page: EditablePage;
   site: Site;
 }) {
-  const config = site.sections.find((s) => s.type === "contact")?.content;
-  const form = config
-    ? (({ recipient, ...copy }) => {
-        void recipient;
-        return copy;
-      })(config)
-    : undefined;
   const link = <T extends Action>(action: T): T =>
     action.url.startsWith("#") && !action.enquiry
       ? {
@@ -559,7 +537,7 @@ export function ContentPage({
       return s;
     });
   return (
-    <EnquiryProvider config={form} options={loanOptions(site)}>
+    <>
       <a
         className="sr-only focus:not-sr-only focus:absolute focus:bg-white focus:p-3"
         href="#main"
@@ -598,6 +576,6 @@ export function ContentPage({
             .backToTop !== false
         }
       />
-    </EnquiryProvider>
+    </>
   );
 }
