@@ -8,6 +8,7 @@ import { LoansMenu } from "./loans-menu";
 import {
   sortVisible,
   youtubeId,
+  sampleVideo,
   type Action,
   type Item,
   type Heading,
@@ -240,7 +241,10 @@ const sectionViews: SectionViews = {
     );
     return (
       slides.length > 0 && (
-        <section aria-label="Financing options" className="bg-navy text-white">
+        <section
+          aria-label="Financing options"
+          className="public-hero bg-navy text-white"
+        >
           <Carousel
             count={slides.length}
             hero
@@ -262,7 +266,7 @@ const sectionViews: SectionViews = {
                     priority={index === initial}
                   />
                   <div
-                    className="absolute inset-0 bg-navy"
+                    className="hero-wash absolute inset-0"
                     style={{ opacity: item.opacity }}
                   />
                   <div className="wrap relative grid min-h-[clamp(530px,48vw,700px)] items-center gap-9 pt-16 pb-24 lg:grid-cols-[1.6fr_1fr] lg:gap-[7%] lg:py-20">
@@ -270,11 +274,8 @@ const sectionViews: SectionViews = {
                       <p className="eyebrow text-[#ff757d]">
                         {item.intro.eyebrow}
                       </p>
-                      <Title className="text-[clamp(36px,4.85vw,68px)] leading-[1.11] font-extrabold tracking-[-.055em]">
-                        {item.intro.heading}{" "}
-                        <span className="text-[#ff626c]">
-                          {item.intro.highlight}
-                        </span>
+                      <Title className="hero-heading">
+                        {item.intro.heading} <span>{item.intro.highlight}</span>
                       </Title>
                       <p className="mt-5 max-w-[570px] text-[15px] leading-relaxed text-blue-50 md:text-lg">
                         {item.intro.description}
@@ -390,10 +391,13 @@ const sectionViews: SectionViews = {
   about(s) {
     const d = s.content;
     return (
-      <section id="about" className="band bg-tint">
+      <section
+        id="about"
+        className="band story-section section-texture bg-tint"
+      >
         <div className="wrap grid items-center gap-12 lg:grid-cols-2 lg:gap-[6%]">
           <div className="relative mr-[12%]">
-            <div className="relative aspect-[1.12] overflow-hidden rounded-[20px] bg-softblue shadow-[0_18px_40px_#09244b15]">
+            <div className="story-photo relative aspect-[1.12] overflow-hidden rounded-[20px] bg-softblue shadow-[0_18px_40px_#09244b15]">
               <Picture photo={d.photo} sizes="(min-width: 1024px) 42vw, 90vw" />
             </div>
             <div className="absolute -right-[14%] bottom-0 max-w-[49%] rounded-[14px] bg-brand p-4 text-white shadow-[0_10px_28px_#c91e2338] md:p-6">
@@ -434,16 +438,24 @@ const sectionViews: SectionViews = {
     const items = configured.length
       ? configured
       : [
-          { label: "Years of experience", value: "—" },
-          { label: "Customers supported", value: "—" },
           {
-            label: "Loan solutions",
+            label: "Loan categories",
             value: String(sortVisible(site.records.loans).length),
           },
-          { label: "Service locations", value: "—" },
+          {
+            label: "Borrowing guides",
+            value: String(sortVisible(site.records.blogs).length),
+          },
+          {
+            label: "Common questions answered",
+            value: String(sortVisible(site.records.faqs).length),
+          },
         ].map((item) => ({ ...item, verified: true, prefix: "", suffix: "" }));
     return (
-      <section id="statistics" className="band bg-navy text-white">
+      <section
+        id="statistics"
+        className="band section-texture bg-navy text-white"
+      >
         <div className="wrap [&_.copy]:text-blue-100 [&_.eyebrow]:text-[#ff757d]">
           <Intro data={d} />
           {preview && items.some((i) => !i.verified) && (
@@ -451,7 +463,7 @@ const sectionViews: SectionViews = {
               Draft figures for layout preview.
             </p>
           )}
-          <div className="mt-9 grid grid-cols-2 gap-y-7 md:grid-cols-4">
+          <div className="mt-9 grid grid-cols-2 gap-y-7 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
             {items.map((item, i) => (
               <div
                 key={i}
@@ -476,7 +488,9 @@ const sectionViews: SectionViews = {
     const r = site.records;
     const published = preview
       ? r.videos
-      : sortVisible(r.videos).filter((i) => youtubeId(i.youtube));
+      : sortVisible(r.videos).filter(
+          (i) => sampleVideo(i.youtube) || youtubeId(i.youtube),
+        );
     const items = published.length
       ? published
       : [
@@ -499,7 +513,11 @@ const sectionViews: SectionViews = {
                 key={i}
                 className="panel overflow-hidden shadow-[0_10px_24px_#09244b09]"
               >
-                <VideoPlayer video={youtubeId(item.youtube)} title={item.title}>
+                <VideoPlayer
+                  video={youtubeId(item.youtube)}
+                  sample={sampleVideo(item.youtube) ? item.youtube : undefined}
+                  title={item.title}
+                >
                   <Picture
                     photo={item.thumbnail}
                     sizes="(min-width: 768px) 33vw, 90vw"
@@ -511,6 +529,11 @@ const sectionViews: SectionViews = {
                   )}
                 </VideoPlayer>
                 <div className="p-5">
+                  {sampleVideo(item.youtube) && (
+                    <p className="mb-2 text-xs font-semibold text-muted">
+                      Sample video
+                    </p>
+                  )}
                   <h3 className="font-extrabold">{item.title}</h3>
                   <p className="mt-1 text-sm text-muted">{item.description}</p>
                 </div>
@@ -523,7 +546,9 @@ const sectionViews: SectionViews = {
   },
   testimonials(s, site) {
     const r = site.records;
-    const items = sortVisible(r.testimonials).filter((i) => i.consent);
+    const items = sortVisible(r.testimonials).filter(
+      (i) => i.example || i.consent,
+    );
     return (
       <section id="stories" className="band bg-tint">
         <div className="wrap">
@@ -533,50 +558,63 @@ const sectionViews: SectionViews = {
           <div className="mt-8">
             <Carousel count={items.length || 3} caption={s.content.caption}>
               {items.length
-                ? items.map((item) => (
-                    <article
-                      key={item.slug}
-                      className={gridCard + " panel lift-card p-6"}
-                    >
-                      <div
-                        className="mb-4 flex gap-1 text-amber-600"
-                        aria-label={item.rating + " out of 5 stars"}
+                ? items.map((item) =>
+                    item.example ? (
+                      <article
+                        key={item.slug}
+                        className={gridCard + " panel p-6"}
                       >
-                        {Array.from({ length: item.rating }, (_, i) => (
-                          <Star
-                            key={i}
-                            size={14}
-                            fill="currentColor"
-                            aria-hidden
-                          />
-                        ))}
-                      </div>
-                      <blockquote className="border-l-[3px] border-ink pl-3 text-sm leading-relaxed text-muted">
-                        {item.review}
-                      </blockquote>
-                      <div className="mt-5 flex items-center gap-3">
-                        <span className="relative grid size-10 place-items-center overflow-hidden rounded-full bg-softblue text-xs font-extrabold">
-                          {item.avatar.image ? (
-                            <Picture photo={item.avatar} sizes="40px" />
-                          ) : (
-                            item.name
-                              .split(/\s+/)
-                              .slice(0, 2)
-                              .map((v) => v[0])
-                              .join("")
-                          )}
-                        </span>
-                        <div>
-                          <h3 className="text-sm font-extrabold">
-                            {item.name}
-                          </h3>
-                          <p className="text-xs text-muted">
-                            {item.designation}
-                          </p>
+                        <p className="text-xs font-semibold text-muted">
+                          {item.designation}
+                        </p>
+                        <h3 className="mt-3 text-xl font-bold">{item.name}</h3>
+                        <p className="copy mt-3">{item.review}</p>
+                      </article>
+                    ) : (
+                      <article
+                        key={item.slug}
+                        className={gridCard + " panel lift-card p-6"}
+                      >
+                        <div
+                          className="mb-4 flex gap-1 text-amber-600"
+                          aria-label={item.rating + " out of 5 stars"}
+                        >
+                          {Array.from({ length: item.rating }, (_, i) => (
+                            <Star
+                              key={i}
+                              size={14}
+                              fill="currentColor"
+                              aria-hidden
+                            />
+                          ))}
                         </div>
-                      </div>
-                    </article>
-                  ))
+                        <blockquote className="border-l-[3px] border-ink pl-3 text-sm leading-relaxed text-muted">
+                          {item.review}
+                        </blockquote>
+                        <div className="mt-5 flex items-center gap-3">
+                          <span className="relative grid size-10 place-items-center overflow-hidden rounded-full bg-softblue text-xs font-extrabold">
+                            {item.avatar.image ? (
+                              <Picture photo={item.avatar} sizes="40px" />
+                            ) : (
+                              item.name
+                                .split(/\s+/)
+                                .slice(0, 2)
+                                .map((v) => v[0])
+                                .join("")
+                            )}
+                          </span>
+                          <div>
+                            <h3 className="text-sm font-extrabold">
+                              {item.name}
+                            </h3>
+                            <p className="text-xs text-muted">
+                              {item.designation}
+                            </p>
+                          </div>
+                        </div>
+                      </article>
+                    ),
+                  )
                 : Array.from({ length: 3 }, (_, i) => (
                     <div
                       key={i}
@@ -939,7 +977,7 @@ export function Home({
     </div>
   ));
   return (
-    <div id="home">
+    <div id="home" className="public-site">
       <EnquiryProvider config={config} options={loanOptions(site)}>
         <a
           className="sr-only z-50 focus:not-sr-only focus:absolute focus:bg-white focus:p-3"

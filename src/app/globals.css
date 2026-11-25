@@ -123,3 +123,91 @@
     text-decoration: underline;
   }
 }
+/* Public typography and surfaces */
+.public-site .title,
+.hero-heading {
+  font-family: var(--public-display), Georgia, serif;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.public-site .title {
+  font-size: clamp(2.35rem, 4.2vw, 4rem);
+  line-height: 0.99;
+}
+
+.hero-heading {
+  font-size: clamp(3rem, 6.4vw, 6.1rem);
+  line-height: 0.92;
+}
+
+.public-hero,
+.section-texture {
+  background-image: repeating-linear-gradient(
+    116deg,
+    transparent 0 23px,
+    color-mix(in srgb, currentColor 5%, transparent) 24px 25px
+  );
+}
+
+.hero-wash {
+  background: linear-gradient(100deg, #081c37 0%, #0b284b 52%, #123a5d 100%);
+}
+
+.story-photo img {
+  transform: scale(1.04);
+}
+
+.story-steps {
+  position: relative;
+  padding-top: 1rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.story-steps::before {
+  content: "";
+  position: absolute;
+  inset: -1px 0 auto;
+  height: 2px;
+  background: #e97679;
+  transform-origin: left;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.public-site) {
+    scroll-behavior: smooth;
+  }
+
+  @supports (animation-timeline: view()) {
+    .story-photo img {
+      animation: story-photo linear both;
+      animation-timeline: view();
+      animation-range: entry 0% exit 65%;
+    }
+
+    .story-steps::before {
+      animation: story-steps linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 42%;
+    }
+  }
+}
+
+@keyframes story-photo {
+  from {
+    transform: scale(1.12) translateY(2%);
+  }
+  to {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes story-steps {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}

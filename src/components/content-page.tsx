@@ -62,18 +62,18 @@ function Block({
   if (b.type === "hero") {
     const Title = primary ? "h1" : "h2";
     return (
-      <section className="relative isolate overflow-hidden bg-[#093360] text-white">
+      <section className="public-hero relative isolate overflow-hidden bg-navy text-white">
         {b.photo.image && (
           <>
             <Picture photo={b.photo} sizes="100vw" />
-            <div className="absolute inset-0 bg-navy/85" />
+            <div className="hero-wash absolute inset-0 opacity-90" />
           </>
         )}
         <div className="wrap relative grid items-center gap-9 py-[clamp(72px,8vw,120px)] lg:grid-cols-[1.55fr_1fr] lg:gap-[10%]">
           <div>
             <p className="eyebrow text-[#ff747b]">{d.eyebrow}</p>
-            <Title className="max-w-[760px] text-[clamp(36px,4.85vw,68px)] leading-[1.1] font-extrabold tracking-[-.055em]">
-              {d.heading} <span className="text-[#ff626c]">{d.highlight}</span>
+            <Title className="hero-heading max-w-[760px]">
+              {d.heading} <span>{d.highlight}</span>
             </Title>
             <p className="mt-5 max-w-[670px] text-sm leading-relaxed text-blue-50 md:text-lg">
               {d.description}
@@ -373,7 +373,12 @@ function Block({
     );
   if (b.type === "steps")
     return (
-      <section className={"band" + (b.dark ? " bg-navy text-white" : "")}>
+      <section
+        className={
+          "band story-section section-texture" +
+          (b.dark ? " bg-navy text-white" : " bg-tint")
+        }
+      >
         <div
           className={
             "wrap" +
@@ -383,7 +388,7 @@ function Block({
           }
         >
           <Intro data={d} center breakHighlight />
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="story-steps mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((item, i) => (
               <article
                 key={i}
@@ -550,8 +555,12 @@ export function ContentPage({
             {renderSection(s, site, false)}
           </div>
         ))}
-      <main id="main">
-        {!hero && <h1 className="wrap title pt-12">{page.title}</h1>}
+      <main id="main" className="public-site">
+        {!hero && (
+          <div className="public-hero bg-navy py-16 text-white">
+            <h1 className="wrap hero-heading">{page.title}</h1>
+          </div>
+        )}
         {sections.map((s) => (
           <Block key={s.id} block={s} site={site} primary={s === hero} />
         ))}

@@ -123,21 +123,59 @@ export const records: Records = {
   videos: [
     [
       "Understanding your loan options",
-      "A simple introduction to choosing a loan type.",
+      "Write down what the money is for, how much you need and when. Ask about fees and total repayment.",
+      "loan-options",
+      "compare.jpg",
+      "A laptop and payment card",
     ],
     [
-      "Plan your next financial step",
-      "Helpful ideas for preparing before you apply.",
+      "Preparing your paperwork",
+      "Ask for a document checklist, gather recent paperwork and use the lender’s official channel to share it.",
+      "documents",
+      "checklist.jpg",
+      "People reviewing documents",
     ],
-    ["Your questions, answered", "Make room for FAQs and customer education."],
-  ].map(([title, description], order) => ({
+    [
+      "Planning a monthly repayment",
+      "Start with reliable income, subtract regular costs and current payments, and leave room for unexpected expenses.",
+      "monthly-budget",
+      "home.jpg",
+      "House model beside keys",
+    ],
+  ].map(([title, description, clip, image, alt], order) => ({
     title,
     description,
-    youtube: "",
-    thumbnail: photo("", ""),
-    ...ordered(order, false),
+    youtube: "/videos/" + clip + ".mp4",
+    thumbnail: photo(image, alt),
+    ...ordered(order),
   })),
-  testimonials: [],
+  testimonials: [
+    [
+      "business-enquiry",
+      "Replacing business equipment",
+      "List the purchase cost and when you need the equipment. Ask how the repayment schedule would fit your usual cash flow.",
+    ],
+    [
+      "home-project",
+      "Planning a home project",
+      "Bring your estimate and timeline to the conversation. Ask which project documents the lender needs to review.",
+    ],
+    [
+      "gold-enquiry",
+      "Exploring a gold loan",
+      "Ask what items are eligible, how they are valued, and when you would get them back after repayment.",
+    ],
+  ].map(([slug, name, review], order) => ({
+    slug,
+    name,
+    review,
+    avatar: photo("", ""),
+    rating: 1,
+    designation: "Illustrative scenario",
+    example: true,
+    consent: false,
+    ...ordered(order),
+  })),
   blogs: [
     [
       "Preparing for a loan: a simple checklist",
@@ -334,19 +372,18 @@ export const draft: Draft = {
       cta: go("Get to Know Us", "#contact"),
     }),
     section("statistics", "Statistics", {
-      ...h("OUR APPROACH IN NUMBERS", "Every number starts with a person."),
+      ...h("", "Explore what’s available"),
       items: [
-        ["12", "+", "Years of experience"],
-        ["8,500", "+", "Customers supported"],
-        ["6", "", "Loan solutions"],
-        ["25", "+", "Service locations"],
-      ].map(([value, suffix, label], order) => ({
-        value,
-        suffix,
-        label,
+        [records.loans.length, "Loan categories"],
+        [records.blogs.length, "Borrowing guides"],
+        [records.faqs.length, "Common questions answered"],
+      ].map(([value, label], order) => ({
+        value: String(value),
+        label: String(label),
+        suffix: "",
         prefix: "",
-        verified: false,
-        ...ordered(order, false),
+        verified: true,
+        ...ordered(order),
       })),
     }),
     section(
@@ -359,8 +396,8 @@ export const draft: Draft = {
       ),
     ),
     section("testimonials", "Testimonials", {
-      ...h("CUSTOMER VOICES", "Trust is built in the little things."),
-      caption: "Stories that inspire us to do better.",
+      ...h("", "What could your next step look like?"),
+      caption: "Example situations for a first loan conversation.",
     }),
     section("blogs", "Blogs & Insights", {
       ...h(

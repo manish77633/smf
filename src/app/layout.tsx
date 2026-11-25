@@ -8,11 +8,19 @@ const jakarta = localFont({
   display: "swap",
   variable: "--public-font",
 });
+const display = localFont({
+  src: "./admin/fonts/cormorant-garamond.woff2",
+  weight: "400 700",
+  display: "swap",
+  variable: "--public-display",
+});
 export const metadata: Metadata = { icons: ["/images/smf.svg"] };
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${jakarta.className} ${jakarta.variable}`}>
+      <body
+        className={`${jakarta.className} ${jakarta.variable} ${display.variable}`}
+      >
         {children}
         <Toaster richColors position="top-right" />
       </body>

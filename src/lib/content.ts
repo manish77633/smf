@@ -97,6 +97,7 @@ export const entities = {
     rating: z.number().int().min(1).max(5),
     designation: text,
     consent: flag,
+    example: flag.optional(),
   }),
   blogs: ordered.extend({
     title: text,
@@ -284,6 +285,9 @@ export type Site = Draft & { records: Records };
 export const sortVisible = <T extends { visible: boolean; order: number }>(
   items: T[],
 ) => items.filter((i) => i.visible).sort((a, b) => a.order - b.order);
+export function sampleVideo(url: string) {
+  return /^\/videos\/(loan-options|documents|monthly-budget)\.mp4$/.test(url);
+}
 export function youtubeId(url: string) {
   try {
     const parsed = new URL(url);

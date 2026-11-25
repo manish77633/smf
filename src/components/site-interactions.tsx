@@ -181,10 +181,64 @@ export function FloatingActions({
   const [scrolled, setScrolled] = useState(false);
   const open = useContext(Modal);
   useEffect(() => {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let settling: "top" | "bottom" | undefined;
+    const clear = () => {
+      settling = undefined;
+    };
+    const wheel = (event: WheelEvent) => {
+      if (
+        motion.matches ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        !event.cancelable ||
+        event.deltaMode !== WheelEvent.DOM_DELTA_PIXEL ||
+        Math.abs(event.deltaX) >= Math.abs(event.deltaY) ||
+        document.querySelector("dialog[open]")
+      )
+        return;
+      const scroll = document.scrollingElement;
+      if (!scroll) return;
+      const bottom = scroll.scrollHeight - scroll.clientHeight;
+      const edge = event.deltaY < 0 ? "top" : "bottom";
+      const distance =
+        edge === "top" ? scroll.scrollTop : bottom - scroll.scrollTop;
+      if (settling && settling !== edge) {
+        clear();
+        window.scrollTo({ top: scroll.scrollTop, behavior: "instant" });
+        return;
+      }
+      if (distance <= 1 || distance > Math.min(100, Math.abs(event.deltaY)))
+        return;
+      if (
+        event
+          .composedPath()
+          .some(
+            (node) =>
+              node instanceof HTMLElement &&
+              node !== scroll &&
+              node.scrollHeight > node.clientHeight &&
+              /^(auto|scroll)$/.test(getComputedStyle(node).overflowY),
+          )
+      )
+        return;
+      event.preventDefault();
+      if (settling === edge) return;
+      settling = edge;
+      window.scrollTo({ top: edge === "top" ? 0 : bottom, behavior: "smooth" });
+    };
+    window.addEventListener("wheel", wheel, { passive: false });
+    window.addEventListener("scrollend", clear);
+    window.addEventListener("pointerdown", clear);
     const update = () => setScrolled(window.scrollY > 220);
     update();
     window.addEventListener("scroll", update, { passive: true });
-    return () => window.removeEventListener("scroll", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("wheel", wheel);
+      window.removeEventListener("scrollend", clear);
+      window.removeEventListener("pointerdown", clear);
+    };
   }, []);
   const active = whatsapp.enabled && Boolean(whatsapp.number);
   const fallback = !whatsapp.number;
@@ -452,17 +506,28 @@ export function Carousel({
 }
 export function VideoPlayer({
   video,
+  sample,
   title,
   children,
 }: {
   video: string;
+  sample?: string;
   title: string;
   children: ReactNode;
 }) {
   const [play, setPlay] = useState(false);
   return (
     <div className="relative aspect-video bg-ink text-white">
-      {play ? (
+      {play && sample ? (
+        <video
+          controls
+          autoPlay
+          playsInline
+          aria-label={title}
+          className="absolute size-full"
+          src={sample}
+        />
+      ) : play ? (
         <iframe
           title={title}
           src={
@@ -475,7 +540,7 @@ export function VideoPlayer({
       ) : (
         <>
           {children}
-          {video && (
+          {(video || sample) && (
             <button
               type="button"
               className="absolute inset-0 grid place-items-center"

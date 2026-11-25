@@ -16,6 +16,7 @@ import {
   pageFields,
   sections,
   youtubeId,
+  sampleVideo,
   type Section,
   type Site,
   type SectionKey,
@@ -105,12 +106,22 @@ export async function saveSite(
       throw new Error(
         "Verify or hide every visible statistic before publishing.",
       );
-    if (draft.records.testimonials.some((i) => i.visible && !i.consent))
+    if (
+      draft.records.testimonials.some(
+        (i) => i.visible && !i.example && !i.consent,
+      )
+    )
       throw new Error(
         "Confirm consent or hide each testimonial before publishing.",
       );
-    if (draft.records.videos.some((i) => i.visible && !youtubeId(i.youtube)))
-      throw new Error("Add a valid YouTube URL or hide the video.");
+    if (
+      draft.records.videos.some(
+        (i) => i.visible && !sampleVideo(i.youtube) && !youtubeId(i.youtube),
+      )
+    )
+      throw new Error(
+        "Add a valid YouTube URL, select a bundled sample, or hide the video.",
+      );
   }
   const session = await mongoose.startSession();
   try {

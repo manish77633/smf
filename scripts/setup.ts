@@ -11,7 +11,13 @@ import {
   connect,
 } from "../src/lib/db";
 import { draft, records } from "../src/lib/seed-content";
-import { entities, type EntityKey, type Site } from "../src/lib/content";
+import {
+  entities,
+  sampleVideo,
+  youtubeId,
+  type EntityKey,
+  type Site,
+} from "../src/lib/content";
 import {
   businessLoanPage,
   contactPage,
@@ -80,6 +86,127 @@ async function setup() {
               draft: { sections: Site["sections"] };
               published?: Site;
             }>();
+          if (home?.published) {
+            const replacements: Partial<Site["records"]> = {};
+            for (const key of [
+              "videos",
+              "testimonials",
+              "blogs",
+              "faqs",
+            ] as const) {
+              if (
+                !home.published.sections.some(
+                  (s) => s.type === key && s.visible,
+                )
+              )
+                continue;
+              const current = await ContentModels[key]
+                .find()
+                .session(session)
+                .lean<
+                  {
+                    key: string;
+                    value: Site["records"]["videos"][number];
+                  }[]
+                >();
+              const stockVideoTitles = [
+                "Understanding your loan options",
+                "Plan your next financial step",
+                "Your questions, answered",
+              ];
+              const oldVideos =
+                key === "videos" &&
+                current.length === stockVideoTitles.length &&
+                current.every(
+                  ({ value }) =>
+                    !value.visible &&
+                    !value.youtube &&
+                    !value.thumbnail.image &&
+                    stockVideoTitles.includes(value.title),
+                );
+              if (current.length && !oldVideos) continue;
+              const existingPublic = home.published.records[key] || [];
+              if (
+                existingPublic.some((item) =>
+                  "youtube" in item
+                    ? Boolean(
+                        sampleVideo(item.youtube) || youtubeId(item.youtube),
+                      )
+                    : item.visible,
+                )
+              )
+                continue;
+              if (oldVideos) {
+                await ContentModels[key].deleteMany(
+                  { key: { $in: current.map((item) => item.key) } },
+                  { session },
+                );
+              }
+              await ContentModels[key].insertMany(
+                records[key].map((value, order) => ({
+                  key: "slug" in value ? value.slug : String(order),
+                  value: entities[key].parse(value),
+                })),
+                { session },
+              );
+              Object.assign(replacements, { [key]: records[key] });
+            }
+            const defaultStats = draft.sections.find(
+              (s) => s.type === "statistics",
+            )!;
+            const defaultStories = draft.sections.find(
+              (s) => s.type === "testimonials",
+            )!;
+            const refreshSections = (sections: Site["sections"]) =>
+              sections.map((section) => {
+                if (
+                  section.type === "statistics" &&
+                  section.visible &&
+                  section.content.heading ===
+                    "Every number starts with a person." &&
+                  !section.content.items.some((i) => i.visible && i.verified)
+                ) {
+                  return { ...section, content: defaultStats.content };
+                }
+                if (
+                  section.type === "testimonials" &&
+                  replacements.testimonials &&
+                  section.content.heading ===
+                    "Trust is built in the little things."
+                ) {
+                  return { ...section, content: defaultStories.content };
+                }
+                return section;
+              });
+            const draftSections = refreshSections(home.draft.sections);
+            const publicSections = refreshSections(home.published.sections);
+            if (
+              Object.keys(replacements).length ||
+              draftSections.some((s, i) => s !== home.draft.sections[i]) ||
+              publicSections.some((s, i) => s !== home.published?.sections[i])
+            ) {
+              await Page.updateOne(
+                { key: "home" },
+                {
+                  $set: {
+                    "draft.sections": draftSections,
+                    "published.sections": publicSections,
+                    ...Object.fromEntries(
+                      Object.entries(replacements).map(([key, values]) => [
+                        "published.records." + key,
+                        values,
+                      ]),
+                    ),
+                  },
+                  $inc: { revision: 1 },
+                },
+                { session },
+              );
+              home.draft.sections = draftSections;
+              home.published.sections = publicSections;
+              console.log("Missing homepage content backfilled.");
+            }
+          }
           const defaultFooter = draft.sections.find(
             (s) => s.type === "footer",
           )!.content;
@@ -197,11 +324,6 @@ async function setup() {
             s.type === "header" ? { ...s, content: {} } : s,
           ),
         };
-        const publicSections = draft.sections.map((s) =>
-          s.type === "statistics"
-            ? { ...s, content: { ...s.content, items: [] } }
-            : s,
-        );
         const publicRecords = Object.fromEntries(
           Object.entries(records).map(([key, items]) => [
             key,
@@ -215,7 +337,7 @@ async function setup() {
               draft: page,
               published: {
                 ...draft,
-                sections: publicSections,
+                sections: draft.sections,
                 records: publicRecords,
               },
             },
@@ -290,15 +412,21 @@ async function setup() {
       .refine((v) => Buffer.byteLength(v) <= 72, "Password exceeds 72 bytes")
       .parse(process.env.ADMIN_INITIAL_PASSWORD);
     await AdminUser.init();
+    const replace = process.argv.includes("--reset-password");
+    const hash = await bcrypt.hash(password, 12);
     const result = await AdminUser.updateOne(
       { email },
-      { $setOnInsert: { hash: await bcrypt.hash(password, 12), version: 0 } },
+      replace
+        ? { $set: { hash }, $inc: { version: 1 } }
+        : { $setOnInsert: { hash, version: 0 } },
       { upsert: true },
     );
     console.log(
       result.upsertedCount
         ? "Administrator created."
-        : "Administrator already exists.",
+        : replace
+          ? "Administrator password updated."
+          : "Administrator already exists.",
     );
   } else throw new Error("Specify seed or admin");
 }

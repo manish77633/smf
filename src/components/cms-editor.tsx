@@ -56,7 +56,16 @@ type Props = {
   media: Asset[];
   loanPageSlugs: string[];
 };
+const fieldLabels: Record<string, string> = {
+  visible: "Show on website",
+  example: "Illustrative scenario",
+  verified: "Figure is verified",
+  eyebrow: "Small heading above title",
+  highlight: "Title continuation",
+};
+
 const pretty = (key: string) =>
+  fieldLabels[key] ??
   key
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/^./, (v) => v.toUpperCase())
@@ -222,12 +231,16 @@ export function Row({
               : item;
           return (
             <details
-              open
               key={i}
               className="rounded-md border border-rule bg-slate-50/70"
             >
               <summary className="px-3 py-2 text-xs font-bold">
                 {typeof title === "string" && title ? title : "Item " + (i + 1)}
+                {typeof row?.visible === "boolean" && (
+                  <span className="ml-2 font-normal text-muted">
+                    {row.visible ? "Visible" : "Hidden"}
+                  </span>
+                )}
               </summary>
               <div className="grid gap-2 border-t border-rule p-2.5">
                 <Row
@@ -290,8 +303,43 @@ export function Row({
           checked={Boolean(value)}
           onChange={(e) => onChange(e.target.checked)}
         />
-        {label}
+        {name === "consent" ? "Customer approved this testimonial" : label}
       </label>
+    );
+  if (name === "youtube")
+    return (
+      <div className="grid gap-2">
+        <label className="grid gap-1 text-sm font-bold">
+          Video link
+          <input
+            className="field font-normal"
+            value={String(value || "")}
+            placeholder="Paste a YouTube link"
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </label>
+        <label className="grid gap-1 text-xs font-bold">
+          Or use a sample video
+          <select
+            className="field font-normal"
+            value={
+              typeof value === "string" && value.startsWith("/videos/")
+                ? value
+                : ""
+            }
+            onChange={(e) => onChange(e.target.value)}
+          >
+            <option value="">Choose a sample</option>
+            <option value="/videos/loan-options.mp4">Choosing a loan</option>
+            <option value="/videos/documents.mp4">
+              Preparing your paperwork
+            </option>
+            <option value="/videos/monthly-budget.mp4">
+              Planning a monthly repayment
+            </option>
+          </select>
+        </label>
+      </div>
     );
   if (name === "icon")
     return (
@@ -743,6 +791,13 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
             .
           </p>
         )}
+        {section.type === "testimonials" && (
+          <p className="mb-3 text-sm text-muted">
+            Use illustrative scenarios to show how an enquiry could work. For a
+            customer quote, turn off the example setting and confirm the
+            customer’s consent.
+          </p>
+        )}
         {section.type === "contact" && (
           <p className="mb-3 text-sm text-muted">
             Publishing these details updates the homepage, Contact page and
@@ -840,6 +895,11 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
           </p>
         </div>
       </div>
+      <p className="mb-4 max-w-prose text-sm text-muted">
+        {section
+          ? "Edit the content below, then save a draft to preview it or publish it to the website."
+          : "Open a section to edit it. Change the display order and visibility here."}
+      </p>
       <fieldset disabled={pending} className="grid gap-3">
         {section ? (
           <section className="editor-section">
