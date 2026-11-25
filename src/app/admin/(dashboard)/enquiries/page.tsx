@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { adminEmail } from "@/auth";
 import { connect, Enquiry } from "@/lib/db";
 import { statuses } from "@/lib/content";
@@ -17,23 +18,7 @@ export default async function Enquiries({
 }: {
   searchParams: Promise<Filters>;
 }) {
-  if (!(await adminEmail())) redirect("/admin/login");
-  await connect();
-  const params = await searchParams,
-    filter = enquiryFilter(params);
-  const [count, loans] = await Promise.all([
-    Enquiry.countDocuments(filter),
-    Enquiry.distinct("loan"),
-  ]);
-  const page = Math.max(
-    1,
-    Math.min(Math.ceil(count / size), Math.floor(Number(params.page) || 1)),
-  );
-  const rows = await Enquiry.find(filter)
-    .sort({ createdAt: -1 })
-    .skip((page - 1) * size)
-    .limit(size)
-    .lean<Row[]>();
+  const params = await searchParams;
   const query = new URLSearchParams(
     Object.entries(params).filter(
       ([key, value]) => key !== "page" && typeof value === "string",
@@ -50,6 +35,46 @@ export default async function Enquiries({
           Export filtered CSV
         </a>
       </div>
+      <Suspense
+        key={JSON.stringify(params)}
+        fallback={
+          <div role="status" className="panel p-4 text-sm text-muted">
+            Loading enquiries…
+          </div>
+        }
+      >
+        <EnquiryResults params={params} query={query} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function EnquiryResults({
+  params,
+  query,
+}: {
+  params: Filters;
+  query: URLSearchParams;
+}) {
+  if (!(await adminEmail())) redirect("/admin/login");
+  await connect();
+  const filter = enquiryFilter(params);
+  const requested = Math.max(1, Math.floor(Number(params.page) || 1));
+  const findRows = (page: number) =>
+    Enquiry.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * size)
+      .limit(size)
+      .lean<Row[]>();
+  const [count, loans, firstPage] = await Promise.all([
+    Enquiry.countDocuments(filter),
+    Enquiry.distinct("loan"),
+    requested === 1 ? findRows(1) : null,
+  ]);
+  const page = Math.max(1, Math.min(Math.ceil(count / size), requested));
+  const rows = firstPage ?? (count ? await findRows(page) : []);
+  return (
+    <>
       <form className="panel mb-5 grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-6">
         <label className="text-xs font-bold">
           Search
@@ -240,6 +265,6 @@ export default async function Enquiries({
           </Link>
         )}
       </nav>
-    </div>
+    </>
   );
 }
