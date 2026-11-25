@@ -65,7 +65,7 @@ function Block({
       <section className="public-hero relative isolate overflow-hidden bg-navy text-white">
         {b.photo.image && (
           <>
-            <Picture photo={b.photo} sizes="100vw" />
+            <Picture photo={b.photo} sizes="100vw" priority={primary} />
             <div className="hero-wash absolute inset-0 opacity-90" />
           </>
         )}

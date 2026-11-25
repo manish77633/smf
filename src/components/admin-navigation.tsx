@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
@@ -29,6 +30,7 @@ const links = [
 export default function AdminNavigation() {
   const pathname = usePathname(),
     tab = useSearchParams().get("tab");
+  const [intended, setIntended] = useState("");
   return (
     <nav
       aria-label="Admin navigation"
@@ -48,6 +50,17 @@ export default function AdminNavigation() {
           <Link
             key={href}
             href={href}
+            prefetch={
+              href === "/admin/pages" ||
+              (intended === href &&
+                href !== "/admin" &&
+                href !== "/admin/enquiries")
+                ? true
+                : undefined
+            }
+            onPointerEnter={() => setIntended(href)}
+            onFocus={() => setIntended(href)}
+            onPointerDown={() => setIntended(href)}
             aria-current={active ? "page" : undefined}
             className={
               "flex min-h-8 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors hover:bg-white/10 hover:text-white " +

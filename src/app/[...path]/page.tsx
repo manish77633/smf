@@ -3,7 +3,20 @@ import { getSite } from "@/lib/site";
 import { publicPage } from "@/lib/page-store";
 import { homeMetadata } from "@/lib/metadata";
 import { ContentPage } from "@/components/content-page";
+import { records } from "@/lib/seed-content";
 type Props = { params: Promise<{ path: string[] }> };
+
+export const revalidate = 300;
+
+export function generateStaticParams() {
+  const paths = new Set([
+    "services",
+    "contact",
+    ...records.loans.map((loan) => loan.slug),
+  ]);
+  return [...paths].map((path) => ({ path: [path] }));
+}
+
 export async function generateMetadata({ params }: Props) {
   const { path } = await params;
   if (path.length !== 1) return {};

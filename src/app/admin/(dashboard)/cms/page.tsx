@@ -10,8 +10,9 @@ export default async function CMS({
   searchParams: Promise<{ tab?: string }>;
 }) {
   if (!(await adminEmail())) redirect("/admin/login");
-  const [{ tab }, initial] = await Promise.all([searchParams, getDraft()]);
-  const [list, pages] = await Promise.all([
+  const [{ tab }, initial, list, pages] = await Promise.all([
+    searchParams,
+    getDraft(),
     Media.find({ deleting: { $ne: true } })
       .sort({ createdAt: -1 })
       .select("url alt -_id")

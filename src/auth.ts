@@ -1,4 +1,5 @@
 import NextAuth from "next-auth";
+import { cache } from "react";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
@@ -60,7 +61,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
-export async function adminEmail() {
+export const adminEmail = cache(async function adminEmail() {
   if (!process.env.AUTH_SECRET || !process.env.MONGODB_URI) return "";
   return (await auth())?.user?.email || "";
-}
+});
