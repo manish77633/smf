@@ -1,0 +1,125 @@
+@import "tailwindcss";
+@theme {
+  --color-navy: #062653;
+  --color-brand: #ec1823;
+  --color-tint: #f1f6fc;
+  --color-ink: #081c37;
+  --color-muted: #526781;
+  --color-rule: #d8e2f0;
+  --color-softred: #fdedee;
+  --color-softblue: #eaf1fa;
+}
+@layer base {
+  body {
+    @apply bg-white text-navy antialiased;
+  }
+  button,
+  summary {
+    @apply cursor-pointer;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-4 outline-blue-500;
+  }
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+  section[id] {
+    scroll-margin-top: 1rem;
+  }
+}
+@layer components {
+  [data-carousel-track="preinit"] {
+    transform: translateX(var(--initial-slide));
+  }
+  .wrap {
+    @apply mx-auto w-[89%] max-w-[1280px];
+  }
+  .band {
+    @apply py-14 md:py-[clamp(76px,7.8vw,120px)];
+  }
+  .eyebrow {
+    @apply mb-4 flex items-center gap-2.5 text-[10px] font-extrabold tracking-[.16em] uppercase text-brand before:h-px before:w-6 before:bg-current md:text-[11px];
+  }
+  .title {
+    @apply text-[29px] leading-[1.16] font-bold tracking-[-.044em] md:text-[clamp(32px,3.3vw,48px)];
+  }
+  .copy {
+    @apply text-sm leading-[1.7] text-muted md:text-[15px];
+  }
+  .button {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-[7px] bg-brand px-5 py-3 text-sm font-extrabold text-white shadow-[0_7px_15px_#ed1b2420] hover:bg-red-700;
+  }
+  .field {
+    @apply w-full rounded-md border border-rule bg-slate-50 px-3 py-2.5 text-sm text-navy;
+  }
+  .field:focus-visible {
+    outline-offset: -2px;
+  }
+  .panel {
+    @apply rounded-[14px] border border-rule bg-white;
+  }
+  .editor-section {
+    @apply min-w-0 rounded-xl border border-rule bg-white shadow-sm;
+  }
+  .editor-section-header {
+    @apply flex min-h-14 flex-wrap items-center gap-2 rounded-t-xl border-b border-rule bg-softblue px-3 py-3 sm:px-5;
+  }
+  .editor-section-index {
+    @apply grid size-8 shrink-0 place-items-center rounded-lg bg-white text-xs font-extrabold text-navy;
+  }
+  .editor-section-content {
+    @apply min-w-0 p-4 sm:p-5;
+  }
+  .editor-media-preview {
+    @apply overflow-hidden rounded-lg border border-rule bg-white;
+  }
+  .editor-save-bar {
+    @apply sticky bottom-2 z-20 mt-5 flex flex-wrap items-center justify-end gap-2 rounded-xl border border-rule bg-white/95 p-3 shadow-lg backdrop-blur;
+  }
+  .lift-card:focus-within {
+    border-color: #9eafc6;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .lift-card {
+      transition:
+        transform 180ms ease,
+        box-shadow 180ms ease,
+        border-color 180ms ease;
+    }
+    .card-photo img {
+      transition: transform 240ms ease;
+    }
+    .button {
+      transition:
+        background-color 160ms ease,
+        box-shadow 160ms ease;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .lift-card:hover {
+        transform: translateY(-3px);
+        border-color: #adbed4;
+        box-shadow: 0 14px 30px #06265312;
+      }
+      .lift-card:hover .card-photo img {
+        transform: scale(1.035);
+      }
+    }
+  }
+  .arrow {
+    @apply grid size-10 shrink-0 place-items-center rounded-full border border-current/25 hover:bg-current/5;
+  }
+  .rich p + p {
+    margin-top: 0.85em;
+  }
+  .rich ul {
+    list-style: disc;
+    padding-left: 1.5em;
+  }
+  .rich ol {
+    list-style: decimal;
+    padding-left: 1.5em;
+  }
+  .rich a {
+    text-decoration: underline;
+  }
+}

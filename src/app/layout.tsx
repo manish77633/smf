@@ -1,0 +1,21 @@
+import type { Metadata } from "next";
+import localFont from "next/font/local";
+import { Toaster } from "sonner";
+import "./globals.css";
+const jakarta = localFont({
+  src: "./jakarta.woff2",
+  weight: "200 800",
+  display: "swap",
+  variable: "--public-font",
+});
+export const metadata: Metadata = { icons: ["/images/smf.svg"] };
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body className={`${jakarta.className} ${jakarta.variable}`}>
+        {children}
+        <Toaster richColors position="top-right" />
+      </body>
+    </html>
+  );
+}
