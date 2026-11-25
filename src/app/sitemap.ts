@@ -3,6 +3,7 @@ import { getSite } from "@/lib/site";
 import { publishedPages } from "@/lib/page-store";
 import { baseUrl } from "@/lib/metadata";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  if (!process.env.MONGODB_URI) return [];
   const site = await getSite(),
     base = baseUrl(site);
   if (!base || !site?.settings.index) return [];

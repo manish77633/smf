@@ -4,9 +4,12 @@ import { connect, Page } from "./db";
 import {
   businessLoanPage,
   contactPage,
+  loanPageFor,
   servicesPage,
   type EditablePage,
 } from "./pages";
+import { records } from "./seed-content";
+import { getSite } from "./site";
 export type PageRecord = {
   draft: EditablePage;
   published?: EditablePage;
@@ -14,17 +17,20 @@ export type PageRecord = {
 };
 export const publicPage = cache(
   async (slug: string): Promise<EditablePage | null> => {
-    if (!process.env.MONGODB_URI)
-      return process.env.NODE_ENV === "development"
-        ? [servicesPage, contactPage, businessLoanPage].find(
-            (page) => page.slug === slug,
-          ) || null
-        : null;
-    await connect();
-    const row = await Page.findOne({ key: "page:" + slug })
-      .select("published -_id")
-      .lean<Pick<PageRecord, "published">>();
-    return row?.published || null;
+    if (process.env.MONGODB_URI) {
+      await connect();
+      const row = await Page.findOne({ key: "page:" + slug })
+        .select("published -_id")
+        .lean<Pick<PageRecord, "published">>();
+      if (row || !(await getSite())?.bundled) return row?.published ?? null;
+    }
+    const page = [servicesPage, contactPage, businessLoanPage].find(
+      (page) => page.slug === slug,
+    );
+    const loan = records.loans.find(
+      (item) => item.visible && item.slug === slug,
+    );
+    return page ?? (loan ? loanPageFor(loan) : null);
   },
 );
 export async function publishedPages() {

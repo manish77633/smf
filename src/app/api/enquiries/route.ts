@@ -36,9 +36,11 @@ export async function POST(request: Request) {
     return reply("The enquiry form is temporarily unavailable.", 503);
   try {
     await connect();
+    const site = await getSite();
+    if (site?.bundled)
+      return reply("The enquiry form is temporarily unavailable.", 503);
     if (await limited("enquiry", clientIp(request.headers), 8, 600000))
       return reply("Please wait a few minutes before trying again.", 429);
-    const site = await getSite();
     if (
       !site ||
       site.page.status !== "published" ||

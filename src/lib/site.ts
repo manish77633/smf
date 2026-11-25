@@ -5,23 +5,28 @@ import { connect, Page, SiteSettings, Navigation, ContentModels } from "./db";
 import { draft, records } from "./seed-content";
 import type { Site, EntityKey, Records } from "./content";
 export const cacheTag = "published-home";
-export async function getSite(): Promise<Site | null> {
-  if (process.env.MONGODB_URI)
-    return process.env.NODE_ENV === "development"
-      ? readPublished()
-      : published();
-  if (process.env.NODE_ENV === "development") return { ...draft, records };
-  return null;
+const bundledSite = {
+  ...draft,
+  records,
+  settings: { ...draft.settings, index: false, follow: false },
+  bundled: true as const,
+};
+export async function getSite(): Promise<(Site & { bundled?: true }) | null> {
+  if (!process.env.MONGODB_URI) return bundledSite;
+  const site = await (process.env.NODE_ENV === "development"
+    ? readPublished()
+    : published());
+  return site === "unseeded" ? bundledSite : site;
 }
-async function readPublished(): Promise<Site | null> {
+async function readPublished(): Promise<Site | null | "unseeded"> {
   await connect();
   const row = await Page.findOne({ key: "home" }).lean<{ published?: Site }>();
-  return row?.published ?? null;
+  return row ? (row.published ?? null) : "unseeded";
 }
 const published = unstable_cache(
   readPublished,
   [
-    "published-home-v4",
+    "published-home-v5",
     createHash("sha256")
       .update(process.env.MONGODB_URI || "")
       .digest("hex"),

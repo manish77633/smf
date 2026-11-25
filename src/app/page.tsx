@@ -27,7 +27,12 @@ export default async function Page() {
           }}
         />
       )}
-      <Home site={site} preview={!process.env.MONGODB_URI} />
+      <Home
+        site={site}
+        preview={
+          process.env.NODE_ENV === "development" && !process.env.MONGODB_URI
+        }
+      />
     </>
   );
 }

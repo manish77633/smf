@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open [the homepage](http://localhost:3000). Without MongoDB, development renders bundled content for a layout preview. Enquiry storage, sign-in, draft editing and publishing require MongoDB.
+Open [the homepage](http://localhost:3000). Without MongoDB, or before a configured database has been seeded, the public routes render bundled content. The production fallback is excluded from indexing. Enquiry storage, sign-in, draft editing and publishing require MongoDB.
 
 ## Configure services
 
@@ -56,7 +56,7 @@ Open **Pages** to edit the homepage, **Our Loan Services** at `/services`, **Bus
 1. Create the Atlas database and configure network access for the deployment. Seed the production database and create the initial administrator from a trusted local terminal using production environment values.
 2. Import the repository into Vercel with the Next.js preset. Set the production environment variables there. Keep `ADMIN_INITIAL_PASSWORD` only in the environment used by the one-time creation command.
 3. Ensure `AUTH_URL` matches the deployed origin and set `NEXT_PUBLIC_SITE_URL` to the canonical domain. Use separate database, secret and origin values for preview environments if those should support the full CMS.
-4. Deploy and verify the homepage, sign-in, `/sitemap.xml`, `/robots.txt`, enquiry storage and email delivery on the deployed domain.
+4. Deploy the latest commit after setting the production environment variables. Verify the homepage, sign-in, `/sitemap.xml`, `/robots.txt`, enquiry storage and email delivery on the deployed domain.
 
 [Next.js installation and runtime](https://nextjs.org/docs/app/getting-started/installation) · [Auth.js credentials provider](https://authjs.dev/getting-started/authentication/credentials)
 
@@ -81,4 +81,3 @@ npm audit --omit=dev
 ```
 
 The supplied screenshots are the layout reference. The default wordmark and stock hero, office and article photographs are replaceable assets. The draft preview displays placeholders for unavailable media and business contact details. Supply company-approved imagery, contact information, legal links and social profiles before launch.
-
