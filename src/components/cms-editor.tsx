@@ -790,7 +790,8 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
             <Link className="font-bold underline" href="/admin/cms?tab=contact">
               Contact Details
             </Link>
-            .
+            . The footer uses the logo from Shared Header when a header logo is
+            set.
           </p>
         )}
         {section.type === "testimonials" && (

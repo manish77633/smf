@@ -133,7 +133,7 @@ export function SharedContactCards({
             <strong className="block text-sm font-extrabold">
               {item.label}
             </strong>
-            <span className="mt-1 block break-words text-sm text-muted">
+            <span className="mt-1 block text-sm text-muted [overflow-wrap:anywhere]">
               {item.value}
             </span>
           </span>
@@ -315,8 +315,10 @@ const sectionViews: SectionViews = {
     const d = s.content;
     return (
       <div className="border-b border-rule bg-white py-4">
-        <div className="wrap flex flex-wrap items-center justify-between gap-x-5 gap-y-3 text-[12px]">
-          <span className="font-bold text-muted">{d.caption}</span>
+        <div className="wrap flex flex-col items-start gap-x-5 gap-y-3 text-[12px] sm:flex-row sm:flex-wrap sm:items-center lg:justify-between">
+          <span className="font-bold text-muted sm:basis-full lg:basis-auto">
+            {d.caption}
+          </span>
           {sortVisible(d.items).map((item, i) => (
             <span key={i} className="flex items-center gap-2.5 font-extrabold">
               <span className={bubble + " size-8 bg-softred text-brand"}>
@@ -722,7 +724,7 @@ const sectionViews: SectionViews = {
     void recipient;
     return (
       <section id="contact" className="band bg-tint">
-        <div className="wrap grid items-start gap-8 lg:grid-cols-[.67fr_1fr] lg:gap-[5%]">
+        <div className="wrap grid grid-cols-1 items-start gap-8 lg:grid-cols-[.67fr_1fr] lg:gap-[5%]">
           <div>
             <Intro data={d} />
             <SharedContactCards site={site} />
@@ -752,6 +754,9 @@ const sectionViews: SectionViews = {
   },
   footer(s, site) {
     const d = s.content;
+    const headerLogo = site.sections.find(
+      (section) => section.type === "header",
+    )?.content.logo;
     const contacts = [
       ...sharedContactDetails(site).map((item) => ({ ...item, label: "" })),
       ...sortVisible(d.contactFields || []),
@@ -762,17 +767,20 @@ const sectionViews: SectionViews = {
         className="relative border-t-4 border-brand bg-ink pt-11 pb-16 text-blue-100 sm:pb-0 md:pt-16"
       >
         <div className="wrap max-w-[1476px] xl:w-[82%]">
-          <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-[1.48fr_.88fr_1fr_1.09fr] lg:gap-7">
-            <div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-7 sm:gap-x-7 lg:grid-cols-[1.48fr_.88fr_1fr_1.09fr]">
+            <div className="col-span-2 min-w-0 lg:col-span-1">
               <Link
                 href="/"
                 aria-label="Home"
-                className="relative block h-[57px] w-[min(100%,260px)]"
+                className={
+                  "relative block h-[57px] w-32 rounded-lg" +
+                  (headerLogo?.image ? " bg-white" : "")
+                }
               >
                 <Picture
-                  photo={d.logo}
-                  className="object-contain object-left"
-                  sizes="260px"
+                  photo={headerLogo?.image ? headerLogo : d.logo}
+                  className="object-contain p-1.5"
+                  sizes="128px"
                 />
               </Link>
               <p className="mt-4 max-w-[330px] text-sm leading-relaxed md:text-base">
@@ -809,7 +817,7 @@ const sectionViews: SectionViews = {
               </ul>
             </div>
             {d.columns.map((col, i) => (
-              <div key={i}>
+              <div key={i} className="min-w-0 break-words">
                 <h2 className="mb-4 text-base font-extrabold text-white md:text-lg">
                   {col.title}
                 </h2>
@@ -831,7 +839,7 @@ const sectionViews: SectionViews = {
                 </ul>
               </div>
             ))}
-            <div>
+            <div className="col-span-2 min-w-0 lg:col-span-1">
               <h2 className="mb-4 text-base font-extrabold text-white md:text-lg">
                 {d.contactTitle}
               </h2>

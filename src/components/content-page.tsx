@@ -100,7 +100,7 @@ function Block({
       : undefined;
     return (
       <section className="band" id="contact">
-        <div className="wrap grid items-start gap-8 lg:grid-cols-[.7fr_1fr] lg:gap-[4%]">
+        <div className="wrap grid grid-cols-1 items-start gap-8 lg:grid-cols-[.7fr_1fr] lg:gap-[4%]">
           <div>
             <Intro data={d} />
             <SharedContactCards site={site} officePath="#office-location" />
