@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { unstable_cache } from "next/cache";
+import type { PipelineStage } from "mongoose";
 import { connect, Page, SiteSettings, Navigation, ContentModels } from "./db";
 import { draft, records } from "./seed-content";
 import type { Site, EntityKey, Records } from "./content";
@@ -39,34 +40,46 @@ export async function getDraft(): Promise<Site & { revision: number }> {
   try {
     return await session.withTransaction(
       async () => {
-        const page = await Page.findOne({ key: "home" })
-          .session(session)
-          .lean<{ draft: Pick<Site, "page" | "sections">; revision: number }>();
-        const settings = await SiteSettings.findOne({ key: "global" })
-          .session(session)
-          .lean<{ value: Site["settings"] }>();
-        const nav = await Navigation.findOne({ key: "home" })
-          .session(session)
-          .lean<{ value: Site["sections"] }>();
-        if (!page || !settings || !nav)
+        const keys = Object.keys(ContentModels) as EntityKey[];
+        const projection = { $project: { _id: 0, value: 1 } };
+        const lookup = (
+          from: string,
+          as: string,
+          key?: string,
+        ): PipelineStage.Lookup => ({
+          $lookup: {
+            from,
+            as,
+            pipeline: key ? [{ $match: { key } }, projection] : [projection],
+          },
+        });
+        type DraftRow = {
+          draft: Pick<Site, "page" | "sections">;
+          revision: number;
+          settings: { value: Site["settings"] }[];
+          navigation: { value: Site["sections"] }[];
+        } & Record<EntityKey, { value: unknown }[]>;
+        const [page] = await Page.aggregate<DraftRow>([
+          { $match: { key: "home" } },
+          { $project: { _id: 0, draft: 1, revision: 1 } },
+          lookup(SiteSettings.collection.name, "settings", "global"),
+          lookup(Navigation.collection.name, "navigation", "home"),
+          ...keys.map((key) => lookup(ContentModels[key].collection.name, key)),
+        ]).session(session);
+        const settings = page?.settings[0]?.value;
+        const navigation = page?.navigation[0]?.value;
+        if (!page || !settings || !navigation)
           throw new Error("Seed the database before using the CMS");
-        const pairs = [];
-        for (const key of Object.keys(ContentModels) as EntityKey[]) {
-          const items = await ContentModels[key]
-            .find()
-            .session(session)
-            .lean<{ value: unknown }[]>();
-          pairs.push([key, items.map((item) => item.value)]);
-        }
-        const collections = Object.fromEntries(pairs) as Records;
         return {
           ...page.draft,
           sections: page.draft.sections.map(
-            (item) => nav.value.find((n) => n.id === item.id) ?? item,
+            (item) => navigation.find((n) => n.id === item.id) ?? item,
           ),
-          settings: settings.value,
-          records: collections,
-          revision: page.revision,
+          settings,
+          records: Object.fromEntries(
+            keys.map((key) => [key, page[key].map((item) => item.value)]),
+          ) as Records,
+          revision: page.revision ?? 0,
         };
       },
       { readConcern: { level: "snapshot" } },
