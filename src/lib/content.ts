@@ -170,7 +170,18 @@ export const sections = {
   contact: heading.extend({
     details: contact.extend({
       hours: text.optional(),
-      directions: link.optional(),
+      directions: z
+        .string()
+        .trim()
+        .max(600)
+        .refine(
+          (value) =>
+            !/^(?:[a-z][a-z0-9+.-]*:|[/\\])/i.test(value) ||
+            (/^(?:https:\/\/|\/(?![\/\\]))/i.test(value) &&
+              link.safeParse(value).success),
+          "Paste an office address or an HTTPS maps link",
+        )
+        .optional(),
     }),
     hoursLabel: text.optional(),
     emailLabel: text,

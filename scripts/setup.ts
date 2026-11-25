@@ -88,6 +88,57 @@ async function setup() {
             }>();
           if (home?.published) {
             const replacements: Partial<Site["records"]> = {};
+            const previousScenarios = [
+              "business-enquiry",
+              "home-project",
+              "gold-enquiry",
+            ];
+            const isPreviousDemo = (items: Site["records"]["testimonials"]) =>
+              items.length === previousScenarios.length &&
+              previousScenarios.every((slug) =>
+                items.some(
+                  (item) =>
+                    item.slug === slug &&
+                    item.example &&
+                    !item.consent &&
+                    item.rating === 1 &&
+                    item.visible &&
+                    item.designation === "Illustrative scenario" &&
+                    !item.avatar.image,
+                ),
+              );
+            if (isPreviousDemo(home.published.records.testimonials || [])) {
+              const current = await ContentModels.testimonials
+                .find()
+                .session(session)
+                .lean<{ value: Site["records"]["testimonials"][number] }[]>();
+              const publishedItems = home.published.records.testimonials;
+              if (
+                isPreviousDemo(current.map((item) => item.value)) &&
+                current.every(({ value }) =>
+                  publishedItems.some(
+                    (item) =>
+                      item.slug === value.slug &&
+                      item.name === value.name &&
+                      item.review === value.review &&
+                      item.order === value.order,
+                  ),
+                )
+              ) {
+                await ContentModels.testimonials.deleteMany(
+                  { "value.slug": { $in: previousScenarios } },
+                  { session },
+                );
+                await ContentModels.testimonials.insertMany(
+                  records.testimonials.map((value) => ({
+                    key: value.slug,
+                    value,
+                  })),
+                  { session },
+                );
+                replacements.testimonials = records.testimonials;
+              }
+            }
             for (const key of [
               "videos",
               "testimonials",
@@ -169,10 +220,28 @@ async function setup() {
                   return { ...section, content: defaultStats.content };
                 }
                 if (
+                  section.type === "statistics" &&
+                  section.content.heading === "Explore what’s available" &&
+                  !section.content.eyebrow &&
+                  !section.content.description &&
+                  !section.content.highlight &&
+                  section.content.items
+                    .map((item) => item.label + ":" + item.value)
+                    .join("|") ===
+                    "Loan categories:6|Borrowing guides:3|Common questions answered:6"
+                ) {
+                  return { ...section, content: defaultStats.content };
+                }
+                if (
                   section.type === "testimonials" &&
                   replacements.testimonials &&
                   section.content.heading ===
-                    "Trust is built in the little things."
+                    "What could your next step look like?" &&
+                  section.content.caption ===
+                    "Example situations for a first loan conversation." &&
+                  !section.content.eyebrow &&
+                  !section.content.description &&
+                  !section.content.highlight
                 ) {
                   return { ...section, content: defaultStories.content };
                 }

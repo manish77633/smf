@@ -27,6 +27,7 @@ import {
   SiteLink,
   LinkButton,
   MobileNav,
+  StatCounter,
   VideoPlayer,
 } from "./site-interactions";
 export function loanCardAction(loan: Item<"loans">): Action {
@@ -454,27 +455,38 @@ const sectionViews: SectionViews = {
     return (
       <section
         id="statistics"
-        className="band section-texture bg-navy text-white"
+        className="band statistics-band bg-navy text-white"
       >
-        <div className="wrap [&_.copy]:text-blue-100 [&_.eyebrow]:text-[#ff757d]">
+        <div className="statistics-waves" aria-hidden="true">
+          <svg viewBox="0 0 1400 500" preserveAspectRatio="xMidYMid slice">
+            {Array.from({ length: 13 }, (_, i) => (
+              <path
+                key={i}
+                d="M-260 350 C 50 450 320 80 675 205 S 1050 460 1630 30"
+                transform={`translate(0 ${i * 17 - 150})`}
+              />
+            ))}
+          </svg>
+        </div>
+        <div className="wrap reference-section relative [&_.copy]:text-blue-100 [&_.eyebrow]:text-[#ff757d]">
           <Intro data={d} />
           {preview && items.some((i) => !i.verified) && (
             <p className="mt-3 text-sm text-blue-100">
               Draft figures for layout preview.
             </p>
           )}
-          <div className="mt-9 grid grid-cols-2 gap-y-7 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
+          <div className="mt-10 grid grid-cols-2 gap-x-3 gap-y-6 lg:mt-12 lg:grid-cols-4 lg:gap-x-5">
             {items.map((item, i) => (
               <div
                 key={i}
-                className="border-l-2 border-[#ff626c] px-4 py-4 md:px-5"
+                className="border-l-2 border-brand px-3 py-5 sm:px-5 lg:py-8"
               >
-                <p className="text-[clamp(30px,4.7vw,66px)] leading-none font-extrabold tracking-tight">
+                <p className="text-[clamp(26px,4.3vw,68px)] leading-none font-extrabold tracking-tight tabular-nums">
                   {item.prefix}
-                  {item.value}
+                  <StatCounter value={item.value} />
                   <span className="text-[#ff626c]">{item.suffix}</span>
                 </p>
-                <p className="mt-3 text-xs text-blue-100 md:text-sm">
+                <p className="mt-4 text-sm text-blue-100 lg:text-base">
                   {item.label}
                 </p>
               </div>
@@ -551,70 +563,61 @@ const sectionViews: SectionViews = {
     );
     return (
       <section id="stories" className="band bg-tint">
-        <div className="wrap">
+        <div className="wrap reference-section">
           <div className="[&>div]:max-w-none">
             <Intro data={s.content} />
           </div>
-          <div className="mt-8">
+          <div className="mt-10 lg:mt-12">
             <Carousel count={items.length || 3} caption={s.content.caption}>
               {items.length
-                ? items.map((item) =>
-                    item.example ? (
-                      <article
-                        key={item.slug}
-                        className={gridCard + " panel p-6"}
+                ? items.map((item) => (
+                    <article
+                      key={item.slug}
+                      className={gridCard + " panel rounded-[20px] p-6 lg:p-7"}
+                    >
+                      <div
+                        className="mb-5 flex gap-1 text-amber-600"
+                        aria-label={item.rating + " out of 5 stars"}
                       >
-                        <p className="text-xs font-semibold text-muted">
-                          {item.designation}
-                        </p>
-                        <h3 className="mt-3 text-xl font-bold">{item.name}</h3>
-                        <p className="copy mt-3">{item.review}</p>
-                      </article>
-                    ) : (
-                      <article
-                        key={item.slug}
-                        className={gridCard + " panel lift-card p-6"}
-                      >
-                        <div
-                          className="mb-4 flex gap-1 text-amber-600"
-                          aria-label={item.rating + " out of 5 stars"}
-                        >
-                          {Array.from({ length: item.rating }, (_, i) => (
-                            <Star
-                              key={i}
-                              size={14}
-                              fill="currentColor"
-                              aria-hidden
-                            />
-                          ))}
+                        {Array.from({ length: item.rating }, (_, i) => (
+                          <Star
+                            key={i}
+                            size={16}
+                            fill="currentColor"
+                            aria-hidden
+                          />
+                        ))}
+                      </div>
+                      <blockquote className="border-l-[4px] border-ink pl-4 text-[15px] leading-relaxed text-muted lg:text-base">
+                        <q>{item.review}</q>
+                      </blockquote>
+                      <div className="mt-6 flex items-center gap-3">
+                        <span className="relative grid size-12 place-items-center overflow-hidden rounded-full bg-softblue text-base font-extrabold">
+                          {item.avatar.image ? (
+                            <Picture photo={item.avatar} sizes="48px" />
+                          ) : (
+                            item.name
+                              .split(/\s+/)
+                              .slice(0, 2)
+                              .map((v) => v[0])
+                              .join("")
+                          )}
+                        </span>
+                        <div>
+                          <h3 className="text-sm font-extrabold">
+                            {item.name}
+                          </h3>
+                          <p className="mt-1 text-sm text-muted">
+                            {item.designation}
+                            {item.example &&
+                              (item.designation
+                                ? " · Demo"
+                                : "Demo testimonial")}
+                          </p>
                         </div>
-                        <blockquote className="border-l-[3px] border-ink pl-3 text-sm leading-relaxed text-muted">
-                          {item.review}
-                        </blockquote>
-                        <div className="mt-5 flex items-center gap-3">
-                          <span className="relative grid size-10 place-items-center overflow-hidden rounded-full bg-softblue text-xs font-extrabold">
-                            {item.avatar.image ? (
-                              <Picture photo={item.avatar} sizes="40px" />
-                            ) : (
-                              item.name
-                                .split(/\s+/)
-                                .slice(0, 2)
-                                .map((v) => v[0])
-                                .join("")
-                            )}
-                          </span>
-                          <div>
-                            <h3 className="text-sm font-extrabold">
-                              {item.name}
-                            </h3>
-                            <p className="text-xs text-muted">
-                              {item.designation}
-                            </p>
-                          </div>
-                        </div>
-                      </article>
-                    ),
-                  )
+                      </div>
+                    </article>
+                  ))
                 : Array.from({ length: 3 }, (_, i) => (
                     <div
                       key={i}

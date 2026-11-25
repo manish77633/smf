@@ -211,3 +211,62 @@
     transform: scaleX(1);
   }
 }
+
+.public-site .reference-section {
+  max-width: 1480px;
+}
+
+.public-site .reference-section .title {
+  font-family: var(--public-font), sans-serif;
+  font-size: clamp(2rem, 3.4vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1.13;
+  letter-spacing: -0.045em;
+}
+
+.reference-section .copy {
+  max-width: 65ch;
+  font-size: clamp(1rem, 1.25vw, 1.25rem);
+}
+
+.statistics-band {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: #052653;
+}
+
+.statistics-waves {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  mask-image: linear-gradient(125deg, transparent 18%, #000 85%);
+}
+
+.statistics-waves svg {
+  position: absolute;
+  inset: -20%;
+  width: 140%;
+  height: 140%;
+  fill: none;
+  stroke: #8faed7;
+  stroke-width: 1.2px;
+  opacity: 0.19;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .statistics-waves svg {
+    animation: statistics-current 18s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes statistics-current {
+  from {
+    transform: translate3d(-3%, 1%, 0) rotate(-3deg);
+  }
+  to {
+    transform: translate3d(5%, -5%, 0) rotate(4deg);
+  }
+}

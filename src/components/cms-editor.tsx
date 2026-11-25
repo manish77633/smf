@@ -58,7 +58,8 @@ type Props = {
 };
 const fieldLabels: Record<string, string> = {
   visible: "Show on website",
-  example: "Illustrative scenario",
+  example: "Demo testimonial",
+  directions: "Directions address or maps link",
   verified: "Figure is verified",
   eyebrow: "Small heading above title",
   highlight: "Title continuation",
@@ -793,15 +794,15 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
         )}
         {section.type === "testimonials" && (
           <p className="mb-3 text-sm text-muted">
-            Use illustrative scenarios to show how an enquiry could work. For a
-            customer quote, turn off the example setting and confirm the
-            customer’s consent.
+            Demo reviews are labelled on the website. For a real review, turn
+            off Demo testimonial and confirm the customer’s consent.
           </p>
         )}
         {section.type === "contact" && (
           <p className="mb-3 text-sm text-muted">
-            Publishing these details updates the homepage, Contact page and
-            shared footer.
+            Publishing updates the homepage, Contact page and shared footer.
+            Paste an address or HTTPS maps link for directions, or leave it
+            blank to use the office address.
           </p>
         )}
         <Row

@@ -504,6 +504,66 @@ export function Carousel({
     </div>
   );
 }
+export function StatCounter({ value }: { value: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const node = ref.current;
+    const match = /^([+-]?)(\d+(?:,\d{2,3})*)(?:\.(\d{1,12}))?$/.exec(
+      value.trim(),
+    );
+    if (!node || !match || !("IntersectionObserver" in window)) return;
+    const target = Number(
+      match[2].replaceAll(",", "") + (match[3] ? "." + match[3] : ""),
+    );
+    if (!target || target > Number.MAX_SAFE_INTEGER) return;
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const fraction = match[3]?.length || 0;
+    const format = new Intl.NumberFormat(
+      /,\d{2},/.test(match[2]) ? "en-IN" : "en-US",
+      {
+        useGrouping: match[2].includes(","),
+        minimumFractionDigits: fraction,
+        maximumFractionDigits: fraction,
+      },
+    );
+    let frame = 0;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        if (motion.matches) return;
+        const start = performance.now();
+        const tick = (now: number) => {
+          const progress = Math.min(1, Math.max(0, (now - start) / 1050));
+          if (progress === 1 || motion.matches) {
+            node.textContent = value;
+            return;
+          }
+          node.textContent =
+            match[1] + format.format(target * (1 - (1 - progress) ** 3));
+          frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(node);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+      node.textContent = value;
+    };
+  }, [value]);
+  return (
+    <>
+      <span className="sr-only">{value}</span>
+      <span ref={ref} aria-hidden="true">
+        {value}
+      </span>
+    </>
+  );
+}
+
 export function VideoPlayer({
   video,
   sample,

@@ -151,27 +151,27 @@ export const records: Records = {
   })),
   testimonials: [
     [
-      "business-enquiry",
-      "Replacing business equipment",
-      "List the purchase cost and when you need the equipment. Ask how the repayment schedule would fit your usual cash flow.",
+      "demo-rahul",
+      "Rahul K.",
+      "The team explained the process clearly and helped me understand the documents I needed. The communication made a difference.",
     ],
     [
-      "home-project",
-      "Planning a home project",
-      "Bring your estimate and timeline to the conversation. Ask which project documents the lender needs to review.",
+      "demo-sunita",
+      "Sunita P.",
+      "I appreciated having someone walk me through the options instead of rushing me. It felt like my questions mattered.",
     ],
     [
-      "gold-enquiry",
-      "Exploring a gold loan",
-      "Ask what items are eligible, how they are valued, and when you would get them back after repayment.",
+      "demo-amit",
+      "Amit M.",
+      "The process was explained in simple language and I knew what the next step would be. Helpful and professional service.",
     ],
   ].map(([slug, name, review], order) => ({
     slug,
     name,
     review,
     avatar: photo("", ""),
-    rating: 1,
-    designation: "Illustrative scenario",
+    rating: 5,
+    designation: "Customer review",
     example: true,
     consent: false,
     ...ordered(order),
@@ -372,11 +372,16 @@ export const draft: Draft = {
       cta: go("Get to Know Us", "#contact"),
     }),
     section("statistics", "Statistics", {
-      ...h("", "Explore what’s available"),
+      ...h(
+        "OUR APPROACH IN NUMBERS",
+        "Every number starts with a person.",
+        "Explore our loan options and the resources available to help you prepare for an enquiry.",
+      ),
       items: [
         [records.loans.length, "Loan categories"],
         [records.blogs.length, "Borrowing guides"],
         [records.faqs.length, "Common questions answered"],
+        [records.videos.length, "Video guides"],
       ].map(([value, label], order) => ({
         value: String(value),
         label: String(label),
@@ -396,8 +401,12 @@ export const draft: Draft = {
       ),
     ),
     section("testimonials", "Testimonials", {
-      ...h("", "What could your next step look like?"),
-      caption: "Example situations for a first loan conversation.",
+      ...h(
+        "CUSTOMER VOICES",
+        "Trust is built in the little things.",
+        "These sample reviews are for illustration.",
+      ),
+      caption: "Stories that inspire us to do better.",
     }),
     section("blogs", "Blogs & Insights", {
       ...h(

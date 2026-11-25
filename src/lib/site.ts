@@ -26,7 +26,7 @@ async function readPublished(): Promise<Site | null | "unseeded"> {
 const published = unstable_cache(
   readPublished,
   [
-    "published-home-v6",
+    "published-home-v7",
     createHash("sha256")
       .update(process.env.MONGODB_URI || "")
       .digest("hex"),

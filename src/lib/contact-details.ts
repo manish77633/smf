@@ -32,6 +32,16 @@ export function sharedContactDetails(
   )?.content;
   const { email, phone, address, hours, directions } = businessDetails(site);
   const dial = phone.replace(/[^+\d]/g, "");
+  const destination = directions.trim() || address.trim();
+  const directionsUrl =
+    /^(?:https:\/\/[^\s]+|\/(?![\/\\])[a-z0-9/_-]*(?:#[a-z0-9-]+)?|#[a-z0-9-]+)$/i.test(
+      destination,
+    )
+      ? destination
+      : destination
+        ? "https://www.google.com/maps/search/?api=1&query=" +
+          encodeURIComponent(destination)
+        : officePath;
   return [
     {
       icon: "Phone",
@@ -49,12 +59,7 @@ export function sharedContactDetails(
       icon: "MapPin",
       label: contact?.addressLabel || "Visit our office",
       value: address || "Office address to be confirmed",
-      url:
-        directions ||
-        (address
-          ? "https://www.google.com/maps/search/?api=1&query=" +
-            encodeURIComponent(address)
-          : officePath),
+      url: directionsUrl,
     },
     {
       icon: "Clock",
