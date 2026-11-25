@@ -39,6 +39,10 @@ type SiteLinkProps = Omit<ComponentPropsWithoutRef<"a">, "href"> & {
 export function SiteLink({ href, ...props }: SiteLinkProps) {
   if (["#contact", "/#contact", "/contact#contact"].includes(href))
     href = companyEnquiryUrl;
+  if (href === companyEnquiryUrl)
+    return (
+      <a {...props} href={href} target="_blank" rel="noopener noreferrer" />
+    );
   return /^\/(?!\/)/.test(href) && !props.download ? (
     <Link href={href} {...props} />
   ) : (
@@ -230,14 +234,14 @@ export function FloatingActions({
         </a>
       ) : (
         fallback && (
-          <a
+          <SiteLink
             className={contactStyle}
             href={companyEnquiryUrl}
             title="Open company enquiry form"
             aria-label="Open company enquiry form"
           >
             <WhatsAppMark />
-          </a>
+          </SiteLink>
         )
       )}
     </div>
