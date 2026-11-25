@@ -1,4 +1,4 @@
-import { businessDetails } from "@/lib/contact-details";
+import { businessDetails, sharedContactDetails } from "@/lib/contact-details";
 import Link from "next/link";
 import {
   Icon,
@@ -133,6 +133,21 @@ function Block({
     );
   }
   if (b.type === "officeMap") {
+    const address = businessDetails(site).address.trim();
+    const office = sharedContactDetails(site).find(
+      (item) => item.icon === "MapPin",
+    );
+    const mapUrl =
+      b.mapUrl ||
+      (address
+        ? "https://www.google.com/maps?q=" +
+          encodeURIComponent(address) +
+          "&output=embed"
+        : "");
+    const directions =
+      address && b.cta.enquiry && b.cta.label === "Ask for Directions" && office
+        ? { ...b.cta, label: "Get directions", url: office.url, enquiry: false }
+        : b.cta;
     return (
       <section id="office-location" className="band bg-tint">
         <div className="wrap">
@@ -142,16 +157,19 @@ function Block({
               <div>
                 <h3 className="font-extrabold">{b.cardTitle}</h3>
                 <p className="mt-1 text-sm text-muted">
-                  {businessDetails(site).address ||
-                    "Office address to be confirmed"}
+                  {address || "Office address to be confirmed"}
                 </p>
               </div>
-              <LinkButton action={b.cta} source="contact-page" kind="outline" />
+              <LinkButton
+                action={directions}
+                source="contact-page"
+                kind="outline"
+              />
             </div>
-            {b.mapUrl ? (
+            {mapUrl ? (
               <iframe
                 title={b.cardTitle || "Office map"}
-                src={b.mapUrl}
+                src={mapUrl}
                 loading="lazy"
                 referrerPolicy="strict-origin-when-cross-origin"
                 className="block h-[clamp(250px,29vw,440px)] w-full border-0"

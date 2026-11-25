@@ -336,7 +336,7 @@ export const contactPage: EditablePage = {
         "Whether you’re exploring a loan category, have a question about the enquiry process or simply need more information, reach out to our team.",
       ),
       cardTitle: "Send an enquiry",
-      note: "Our phone number, email address, office address and opening hours will appear here once confirmed.",
+      note: "",
       contactCards: cards([
         ["Call us", "Phone number to be confirmed", "Phone"],
         ["Email us", "Email address to be confirmed", "Mail"],
@@ -368,7 +368,7 @@ export const contactPage: EditablePage = {
         "Find us",
         "Visit the Shree Mahavir Fincorp office.",
         "",
-        "Use the map below to find our office once the verified business address is added.",
+        "Use the map below to find our office.",
       ),
       cardTitle: "Our office location",
       cardCopy: "Office address to be confirmed",

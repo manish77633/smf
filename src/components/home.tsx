@@ -1,5 +1,4 @@
 import { sharedContactDetails } from "@/lib/contact-details";
-import { Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "./site-icons";
@@ -576,16 +575,14 @@ const sectionViews: SectionViews = {
                       className={gridCard + " panel rounded-[20px] p-6 lg:p-7"}
                     >
                       <div
-                        className="mb-5 flex gap-1 text-amber-600"
+                        className="mb-5 flex gap-1 text-[19px] leading-none text-[#ef9b20]"
+                        role="img"
                         aria-label={item.rating + " out of 5 stars"}
                       >
                         {Array.from({ length: item.rating }, (_, i) => (
-                          <Star
-                            key={i}
-                            size={16}
-                            fill="currentColor"
-                            aria-hidden
-                          />
+                          <span key={i} aria-hidden="true">
+                            ★
+                          </span>
                         ))}
                       </div>
                       <blockquote className="border-l-[4px] border-ink pl-4 text-[15px] leading-relaxed text-muted lg:text-base">

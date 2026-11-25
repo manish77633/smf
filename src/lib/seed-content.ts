@@ -378,14 +378,14 @@ export const draft: Draft = {
         "Explore our loan options and the resources available to help you prepare for an enquiry.",
       ),
       items: [
-        [records.loans.length, "Loan categories"],
-        [records.blogs.length, "Borrowing guides"],
-        [records.faqs.length, "Common questions answered"],
-        [records.videos.length, "Video guides"],
-      ].map(([value, label], order) => ({
-        value: String(value),
+        ["12", "Years of experience", "+"],
+        ["8,500", "Customers supported", "+"],
+        ["6", "Loan solutions", ""],
+        ["25", "Service locations", "+"],
+      ].map(([value, label, suffix], order) => ({
+        value,
         label: String(label),
-        suffix: "",
+        suffix,
         prefix: "",
         verified: true,
         ...ordered(order),

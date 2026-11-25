@@ -23,7 +23,7 @@ const config: NextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; frame-src https://www.youtube-nocookie.com https://www.google.com/maps/embed; form-action 'self'",
+              "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; frame-src https://www.youtube-nocookie.com https://www.google.com/maps/embed https://www.google.com/maps; form-action 'self'",
           },
         ],
       },

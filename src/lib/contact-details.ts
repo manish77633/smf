@@ -46,13 +46,18 @@ export function sharedContactDetails(
     {
       icon: "Phone",
       label: contact?.phoneLabel || "Call us",
-      value: phone || "Phone number to be confirmed",
+      value:
+        dial === "+910000000000"
+          ? phone + " (Demo)"
+          : phone || "Phone number to be confirmed",
       url: dial ? "tel:" + dial : "/contact",
     },
     {
       icon: "Mail",
       label: contact?.emailLabel || "Email us",
-      value: email || "Email available on enquiry",
+      value: email.endsWith(".example")
+        ? email + " (Demo)"
+        : email || "Email available on enquiry",
       url: email ? "mailto:" + email : "/contact",
     },
     {
