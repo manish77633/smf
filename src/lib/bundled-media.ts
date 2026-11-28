@@ -5,6 +5,7 @@ export const bundledMedia = [
   ["team.jpg", "Colleagues at work in a shared office"],
   ["business-loan.jpg", "Small business finances and funding paperwork"],
   ["gold-loan.jpg", "Gold ring on a white surface"],
+  ["gold-loan-mobile.webp", "Gold ring on a velvet cushion"],
   ["construction-loan.jpg", "Construction worker on a building frame"],
   ["checklist.jpg", "People reviewing paperwork at a table"],
   ["compare.jpg", "Person using a card and laptop"],
@@ -14,7 +15,9 @@ export const bundledMedia = [
   ["reference-shop.webp", "Shopkeeper in his store"],
   ["reference-shop-mobile.webp", "Shopkeeper standing among the shelves in his store"],
   ["reference-sewing.webp", "Tailor working with pink fabric"],
+  ["reference-sewing-mobile.webp", "Tailor sewing pink fabric in her shop"],
   ["reference-dairy.webp", "Dairy farmer with a buffalo"],
   ["reference-family.webp", "Parents with their daughter"],
+  ["reference-family-mobile.webp", "Parents and their daughter sitting together at home"],
   ["reference-emi.webp", "Calculator and pen"],
 ].map(([file, alt]) => ({ url: "/images/" + file, alt }));

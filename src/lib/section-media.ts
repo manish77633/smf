@@ -15,6 +15,13 @@ const pageHeroImages: Record<string, string> = {
   services: "reference-hero.webp",
   "home-loan": "home.jpg",
 };
+const mobileHeroImages = new Map([
+  ["/images/reference-hero.webp", "reference-hero-mobile.webp"],
+  ["/images/reference-shop.webp", "reference-shop-mobile.webp"],
+  ["/images/reference-family.webp", "reference-family-mobile.webp"],
+  ["/images/reference-sewing.webp", "reference-sewing-mobile.webp"],
+  ["/images/gold-loan.jpg", "gold-loan-mobile.webp"],
+]);
 
 function defaultPhoto(file: string | undefined): Photo {
   const url = file ? "/images/" + file : "";
@@ -33,8 +40,8 @@ export function homeHeroPhoto(photo: Photo): Photo {
 
 export function mobileHeroPhoto(photo: Photo, mobile?: Photo): Photo | undefined {
   if (mobile?.image) return mobile;
-  if (photo.image === "/images/reference-hero.webp") return defaultPhoto("reference-hero-mobile.webp");
-  if (photo.image === "/images/reference-shop.webp") return defaultPhoto("reference-shop-mobile.webp");
+  const file = mobileHeroImages.get(photo.image);
+  return file ? defaultPhoto(file) : undefined;
 }
 
 export function serviceCardPhoto(slug: string, photo?: Photo): Photo {

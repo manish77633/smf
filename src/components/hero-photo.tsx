@@ -6,6 +6,7 @@ import { mobileHeroPhoto } from "@/lib/section-media";
 const mobileFocus: Record<string, string> = {
   "/images/reference-shop.webp": "55% top",
   "/images/construction-loan.jpg": "32% top",
+  "/images/home.jpg": "70% top",
 };
 
 export default function HeroPhoto({ photo, mobile, priority, className }: {
