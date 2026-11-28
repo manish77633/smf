@@ -21,6 +21,8 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   ArrowDown,
   ArrowUp,
+  ChevronDown,
+  Copy,
   Eye,
   EyeOff,
   GripVertical,
@@ -37,6 +39,7 @@ import {
   globals,
   pageFields,
   sections,
+  type Content,
   type EntityKey,
   type Section,
   type SectionKey,
@@ -49,6 +52,7 @@ const RichEditor = dynamic(() => import("./rich-editor"), {
 });
 const homepageSectionEditors = {
   ...sections,
+  contact: sections.contact.omit({ details: true }),
   footer: sections.footer.omit({ details: true }),
   header: sections.header.omit({ outline: true }),
   hero: sections.hero.extend({
@@ -73,6 +77,9 @@ const fieldLabels: Record<string, string> = {
   example: "Demo testimonial",
   enquiry: "Open company enquiry form",
   directions: "Directions address or maps link",
+  contactFields: "Additional footer contact links",
+  socials: "Social media links",
+  useHeaderLogo: "Use the header logo in the footer",
   verified: "Figure is verified",
   eyebrow: "Small heading above title",
   highlight: "Title continuation",
@@ -435,6 +442,7 @@ export function Row({
         ) : (
           <input
             className="field font-normal"
+            list={name === "url" ? "site-link-destinations" : undefined}
             type={
               schema instanceof z.ZodNumber
                 ? "number"
@@ -655,6 +663,8 @@ export function SortableEditorSection({
   moveUp,
   moveDown,
   remove,
+  duplicate,
+  collapsible = false,
 }: {
   section: { id: string; label: string; type: string; visible: boolean };
   children: React.ReactNode;
@@ -663,7 +673,10 @@ export function SortableEditorSection({
   moveUp?: () => void;
   moveDown?: () => void;
   remove?: () => void;
+  duplicate?: () => void;
+  collapsible?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(!collapsible);
   const {
     setNodeRef,
     setActivatorNodeRef,
@@ -692,7 +705,20 @@ export function SortableEditorSection({
         </button>
         <span className="editor-section-index">{index + 1}</span>
         <div className="mr-auto min-w-0">
-          <h2 className="text-sm font-extrabold">{section.label}</h2>
+          <h2 className="text-sm font-extrabold">
+            {collapsible ? (
+              <button
+                type="button"
+                className="flex items-center gap-1 text-left"
+                aria-expanded={expanded}
+                aria-controls={"section-fields-" + section.id}
+                onClick={() => setExpanded((open) => !open)}
+              >
+                <ChevronDown size={16} className={expanded ? "rotate-180" : ""} aria-hidden />
+                {section.label || section.type}
+              </button>
+            ) : section.label}
+          </h2>
           <p className="text-xs text-muted">
             {section.type}
             {!section.visible ? " · Hidden" : ""}
@@ -719,6 +745,14 @@ export function SortableEditorSection({
             tooltip={section.visible ? "Hide section" : "Show section"}
             hiddenState={!section.visible}
           />
+          {duplicate && (
+            <EditorIconButton
+              icon={Copy}
+              label={"Duplicate " + section.label}
+              tooltip="Duplicate section"
+              onClick={duplicate}
+            />
+          )}
           {remove && (
             <EditorIconButton
               icon={Trash2}
@@ -730,7 +764,9 @@ export function SortableEditorSection({
           )}
         </div>
       </header>
-      <div className="editor-section-content">{children}</div>
+      <div id={"section-fields-" + section.id} className="editor-section-content" hidden={!expanded}>
+        {expanded && children}
+      </div>
     </div>
   );
 }
@@ -849,6 +885,29 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
         s.id === id ? ({ ...s, ...part } as Section) : s,
       ),
     }));
+  const editContactDetails = (details: Content<"contact">["details"]) =>
+    set((current) => {
+      const contact = current.sections.find((s) => s.type === "contact");
+      if (contact) {
+        return {
+          ...current,
+          sections: current.sections.map((s) =>
+            s.type === "contact"
+              ? { ...s, content: { ...s.content, details } }
+              : s,
+          ),
+        };
+      }
+      const template = bundledDraft.sections.find((s) => s.type === "contact");
+      if (!template) return current;
+      return {
+        ...current,
+        sections: [
+          ...current.sections,
+          { ...template, visible: false, content: { ...template.content, details } },
+        ],
+      };
+    });
   const editorBody = (section: Section) => {
     const collection =
       section.type in entities ? (section.type as EntityKey) : undefined;
@@ -862,14 +921,31 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
             onChange={(e) => editSection(section.id, { label: e.target.value })}
           />
         </label>
+        {(section.type === "contact" || section.type === "footer") && (
+          <div className="mb-5 grid gap-3 rounded-lg border border-rule bg-slate-50/70 p-4">
+            <h2 className="text-sm font-extrabold">Shared contact details</h2>
+            <p className="text-sm text-muted">
+              Publishing updates the homepage,{" "}
+              <Link className="font-bold underline" href="/admin/pages/contact">
+                Contact page
+              </Link>
+              {" "}and shared footer. Leave directions blank to use the office
+              address.
+            </p>
+            <Row
+              schema={sections.contact.shape.details}
+              value={businessDetails(doc)}
+              onChange={(value) =>
+                editContactDetails(value as Content<"contact">["details"])
+              }
+              name="details"
+              media={media}
+            />
+          </div>
+        )}
         {section.type === "footer" && (
           <p className="mb-3 text-sm text-muted">
-            Phone, email, office address and hours are managed in{" "}
-            <Link className="font-bold underline" href="/admin/cms?tab=contact">
-              Contact Details
-            </Link>
-            . The footer uses the logo from Shared Header when a header logo is
-            set.
+            Turn off the header logo option to use a separate footer logo.
           </p>
         )}
         {section.type === "testimonials" && (
@@ -878,20 +954,13 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
             off Demo testimonial and confirm the customer’s consent.
           </p>
         )}
-        {section.type === "contact" && (
-          <p className="mb-3 text-sm text-muted">
-            Publishing updates the homepage, Contact page and shared footer.
-            Paste an address or HTTPS maps link for directions, or leave it
-            blank to use the office address.
-          </p>
-        )}
         <Row
           schema={homepageSectionEditors[section.type]}
           value={
             section.type === "header"
               ? { loanMenu: true, loanMenuUrl: "/services", ...section.content }
-              : section.type === "contact"
-                ? { ...section.content, details: businessDetails(doc) }
+              : section.type === "footer"
+                ? { useHeaderLogo: true, ...section.content }
                 : section.content
           }
           onChange={(v) =>
@@ -1149,7 +1218,10 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
               </label>
             </div>
             <section className="panel space-y-3 p-4">
-              <h2 className="text-sm font-extrabold">Search appearance</h2>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-sm font-extrabold">Search appearance</h2>
+                <Link href="/admin/seo?target=home" className="font-bold underline">Open SEO editor</Link>
+              </div>
               <Row
                 schema={pageFields.shape.seo.pick({
                   title: true,

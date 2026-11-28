@@ -4,6 +4,7 @@ import { adminEmail } from "@/auth";
 import { connect, Enquiry } from "@/lib/db";
 import { getSite } from "@/lib/site";
 import { dateLabel, type Row } from "@/lib/enquiry-admin";
+import { adminPages } from "@/lib/admin-pages";
 export default async function Overview() {
   if (!(await adminEmail())) redirect("/admin/login");
   await connect();
@@ -12,7 +13,7 @@ export default async function Overview() {
     { length: 6 },
     (_, i) => new Date(now.getTime() - (6 - i) * 7 * 86400000),
   );
-  const [total, fresh, contacted, site, recent, byLoan, trend] =
+  const [total, fresh, contacted, site, recent, byLoan, trend, pages] =
     await Promise.all([
       Enquiry.countDocuments(),
       Enquiry.countDocuments({ status: "New" }),
@@ -35,7 +36,12 @@ export default async function Overview() {
           },
         },
       ]),
+      adminPages(),
     ]);
+  const publications = pages
+    .filter((page) => page.publishedAt)
+    .sort((a, b) => Number(b.publishedAt) - Number(a.publishedAt))
+    .slice(0, 5);
   const live = site?.page.status === "published" ? site.records : undefined;
   const cards = [
     ["Total enquiries", total],
@@ -51,8 +57,14 @@ export default async function Overview() {
   ];
   return (
     <div className="mx-auto max-w-6xl">
-      <p className="mb-2 text-xs font-bold text-muted">Admin / Overview</p>
-      <h1 className="mb-6 text-3xl font-extrabold">Overview</h1>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-3xl font-extrabold">Dashboard</h1>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/pages" className="admin-quiet-action">Manage pages</Link>
+          <Link href="/admin/media" className="admin-quiet-action">Add media</Link>
+          <Link href="/admin/seo" className="admin-quiet-action">Manage SEO</Link>
+        </div>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {cards.map(([label, value]) => (
           <div className="panel p-4" key={label}>
@@ -61,6 +73,19 @@ export default async function Overview() {
           </div>
         ))}
       </div>
+      <section className="panel mt-5 p-5">
+        <h2 className="mb-3 text-lg font-extrabold">Recent publications</h2>
+        {publications.length ? (
+          <ul className="divide-y divide-rule">
+            {publications.map((page) => (
+              <li key={page.path} className="flex flex-wrap justify-between gap-2 py-2">
+                <Link href={page.edit} className="font-bold hover:underline">{page.title}</Link>
+                {page.publishedAt && <time dateTime={page.publishedAt.toISOString()}>{dateLabel(page.publishedAt)}</time>}
+              </li>
+            ))}
+          </ul>
+        ) : <p className="text-sm text-muted">Published changes will appear here.</p>}
+      </section>
       <div className="my-5 grid gap-5 md:grid-cols-2">
         <section className="panel p-5">
           <h2 className="mb-4 text-lg font-extrabold">Enquiry trends</h2>

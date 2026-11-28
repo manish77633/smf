@@ -616,9 +616,23 @@ export function ContentPage({
             <h1 className="wrap hero-heading">{page.title}</h1>
           </div>
         )}
-        {sections.map((s) => (
-          <Block key={s.id} block={s} site={site} primary={s === hero} pageSlug={page.slug} />
-        ))}
+        {sections.map((s) => {
+          const extraButton = s.secondaryAction?.label &&
+            (s.secondaryAction.url || s.secondaryAction.enquiry);
+          if (s.spacing !== "extra" && !extraButton) {
+            return <Block key={s.id} block={s} site={site} primary={s === hero} pageSlug={page.slug} />;
+          }
+          return (
+            <div key={s.id} className={s.spacing === "extra" ? "py-6 sm:py-10" : "contents"}>
+              <Block block={s} site={site} primary={s === hero} pageSlug={page.slug} />
+              {extraButton && s.secondaryAction && (
+                <div className="wrap pb-6">
+                  <LinkButton action={s.secondaryAction} kind="outline" />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </main>
       {[
         ...shell.filter((s) => s.type === "banner"),

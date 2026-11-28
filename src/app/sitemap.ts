@@ -1,21 +1,16 @@
 import type { MetadataRoute } from "next";
 import { getSite } from "@/lib/site";
 import { publishedPages } from "@/lib/page-store";
-import { baseUrl } from "@/lib/metadata";
+import { baseUrl, canonicalUrl } from "@/lib/metadata";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  if (!process.env.MONGODB_URI) return [];
+  if (!process.env.MONGODB_URI || process.env.VERCEL_ENV === "preview") return [];
   const site = await getSite(),
     base = baseUrl(site);
-  if (!base || !site?.settings.index) return [];
+  if (!base || !site?.settings.index || site.bundled) return [];
   const pages = await publishedPages();
-  const extra = pages
-    .filter(({ published: p }) => p.seo.index && p.seo.sitemap)
-    .map(({ published: p }) => ({ url: base + "/" + p.slug }));
-  return base &&
-    site?.page.seo.sitemap &&
-    site.page.seo.index &&
-    site.settings.index &&
-    site.page.status === "published"
-    ? [{ url: base + "/" }, ...extra]
-    : extra;
+  const entries = pages.map(({ published: p }) => ({ path: "/" + p.slug, seo: p.seo }));
+  if (site.page.status === "published") entries.unshift({ path: "/", seo: site.page.seo });
+  return entries
+    .filter(({ path, seo }) => seo.index && seo.sitemap && canonicalUrl(seo.canonical, path, base) === base + path)
+    .map(({ path }) => ({ url: base + path }));
 }

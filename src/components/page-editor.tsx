@@ -132,12 +132,14 @@ function newSection(type: PageBlock["type"]): PageBlock {
 export default function PageEditor({
   initial,
   initialRevision,
+  history,
   published,
   media,
   loans,
 }: {
   initial: EditablePage;
   initialRevision: number;
+  history: string[];
   published: boolean;
   media: { url: string; alt: string }[];
   loans: { slug: string; title: string }[];
@@ -217,7 +219,10 @@ export default function PageEditor({
       if (mode === "unpublish") setLive(false);
       else {
         setSaved(doc);
-        if (mode === "publish") setLive(true);
+        if (mode === "publish") {
+          setLive(true);
+          router.refresh();
+        }
       }
     });
   }
@@ -258,7 +263,14 @@ export default function PageEditor({
           </label>
         </div>
         <section className="panel p-3">
-          <h2 className="text-sm font-extrabold">Search appearance</h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-extrabold">Search appearance</h2>
+            {initialRevision >= 0 && (
+              <Link href={"/admin/seo?target=" + encodeURIComponent("page:" + initial.slug)} className="font-bold underline">
+                Open SEO editor
+              </Link>
+            )}
+          </div>
           <div className="mt-4">
             <Row
               name="SEO"
@@ -327,7 +339,19 @@ export default function PageEditor({
                 key={block.id}
                 section={{ ...block, type: labels[block.type] }}
                 index={index}
+                collapsible
                 toggle={() => update(block.id, { visible: !block.visible })}
+                duplicate={doc.sections.length < 40 ? () => {
+                  const copy = {
+                    ...structuredClone(block),
+                    id: crypto.randomUUID(),
+                    label: (block.label || labels[block.type]).slice(0, 74) + " copy",
+                  };
+                  setDoc((d) => ({
+                    ...d,
+                    sections: [...d.sections.slice(0, index + 1), copy, ...d.sections.slice(index + 1)],
+                  }));
+                } : undefined}
                 moveUp={index ? () => move(index, -1) : undefined}
                 moveDown={
                   index < doc.sections.length - 1
@@ -353,6 +377,18 @@ export default function PageEditor({
                       }
                     />
                   </label>
+                  <details className="rounded-lg border border-rule p-3">
+                    <summary className="cursor-pointer font-bold">Section layout and button</summary>
+                    <div className="mt-3 grid gap-3">
+                      <Row
+                        schema={pageBlock.pick({ spacing: true, secondaryAction: true })}
+                        value={block}
+                        name="Section layout"
+                        media={media}
+                        onChange={(value) => update(block.id, value as Partial<PageBlock>)}
+                      />
+                    </div>
+                  </details>
                   {(block.type === "contactForm" ||
                     block.type === "officeMap") && (
                     <p className="text-xs text-muted">
@@ -560,6 +596,28 @@ export default function PageEditor({
           </button>
         </div>
       </fieldset>
+      {revision >= 0 && (
+        <details className="panel mt-4 p-3">
+          <summary className="cursor-pointer font-bold">Publish history</summary>
+          {history.length ? (
+            <ul className="mt-3 grid gap-1 text-sm text-muted">
+              {history.map((date, index) => (
+                <li key={date + index}>
+                  <time dateTime={date}>
+                    {new Intl.DateTimeFormat("en-IN", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                      timeZone: "Asia/Kolkata",
+                    }).format(new Date(date))} IST
+                  </time>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-muted">No publication entries yet.</p>
+          )}
+        </details>
+      )}
       <div className="editor-save-bar">
         <button
           className={secondary}

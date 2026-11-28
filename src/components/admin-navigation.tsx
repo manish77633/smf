@@ -12,66 +12,80 @@ import {
   ContactRound,
   Mail,
   Settings,
+  Search,
   UserRound,
 } from "lucide-react";
 
-const links = [
-  ["/admin", "Overview", LayoutDashboard],
-  ["/admin/pages", "Pages", PanelsTopLeft],
-  ["/admin/cms?tab=loans", "Loan Cards", Landmark],
-  ["/admin/media", "Media Library", Images],
-  ["/admin/cms?tab=header", "Shared Header", PanelTop],
-  ["/admin/cms?tab=contact", "Contact Details", ContactRound],
-  ["/admin/cms?tab=footer", "Shared Footer", PanelBottom],
-  ["/admin/enquiries", "Enquiries", Mail],
-  ["/admin/cms?tab=general", "Site Settings", Settings],
-  ["/admin/account", "Account", UserRound],
+const groups = [
+  {
+    label: "Content",
+    links: [
+      ["/admin", "Dashboard", LayoutDashboard],
+      ["/admin/pages", "Pages", PanelsTopLeft],
+      ["/admin/pages?group=loans", "Loan services", Landmark],
+      ["/admin/media", "Media library", Images],
+    ],
+  },
+  {
+    label: "Shared website",
+    links: [
+      ["/admin/cms?tab=header", "Header", PanelTop],
+      ["/admin/cms?tab=footer", "Footer", PanelBottom],
+      ["/admin/cms?tab=contact", "Contact details", ContactRound],
+      ["/admin/seo", "SEO", Search],
+      ["/admin/cms?tab=general", "Site settings", Settings],
+    ],
+  },
+  {
+    label: "Operations",
+    links: [
+      ["/admin/enquiries", "Enquiries", Mail],
+      ["/admin/account", "Account", UserRound],
+    ],
+  },
 ] as const;
 export default function AdminNavigation() {
-  const pathname = usePathname(),
-    tab = useSearchParams().get("tab");
+  const pathname = usePathname(), search = useSearchParams();
+  const tab = search.get("tab");
+  const pagePath = pathname.startsWith("/admin/pages");
+  const loanServices = (pagePath && search.get("group") === "loans") ||
+    (pathname === "/admin/cms" && tab === "loans");
+  const sharedTabs = ["loans", "header", "footer", "contact", "general", "seo", "banner", "whatsapp"];
   const [intended, setIntended] = useState("");
   return (
-    <nav
-      aria-label="Admin navigation"
-      className="grid grid-cols-2 gap-0.5 p-2.5 sm:grid-cols-4 lg:grid-cols-1"
-    >
-      {links.map(([href, label, Icon]) => {
-        const active = href.includes("?")
-          ? pathname === "/admin/cms" && href.endsWith("=" + tab)
-          : href === "/admin/pages"
-            ? pathname.startsWith("/admin/pages") ||
-              (pathname === "/admin/cms" &&
-                !["loans", "header", "footer", "contact", "general"].includes(
-                  tab || "",
-                ))
-            : pathname === href;
-        return (
-          <Link
-            key={href}
-            href={href}
-            prefetch={
-              href === "/admin/pages" ||
-              (intended === href &&
-                href !== "/admin" &&
-                href !== "/admin/enquiries")
-                ? true
-                : undefined
+    <nav aria-label="Admin navigation" className="admin-navigation">
+      {groups.map(({ label: groupLabel, links }) => (
+        <div key={groupLabel} className="admin-nav-group" role="group" aria-label={groupLabel}>
+          <p aria-hidden>{groupLabel}</p>
+          {links.map(([href, label, Icon]) => {
+            let active = pathname === href;
+            if (href === "/admin/pages?group=loans") active = loanServices;
+            else if (href === "/admin/pages") {
+              active = (pagePath && !loanServices) ||
+                (pathname === "/admin/cms" && !sharedTabs.includes(tab || ""));
+            } else if (href === "/admin/seo") {
+              active = pathname.startsWith("/admin/seo") || (pathname === "/admin/cms" && tab === "seo");
+            } else if (href.startsWith("/admin/cms?")) {
+              const activeTab = tab === "banner" ? "header" : tab === "whatsapp" ? "general" : tab;
+              active = pathname === "/admin/cms" && href.endsWith("=" + activeTab);
             }
-            onPointerEnter={() => setIntended(href)}
-            onFocus={() => setIntended(href)}
-            onPointerDown={() => setIntended(href)}
-            aria-current={active ? "page" : undefined}
-            className={
-              "flex min-h-8 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors hover:bg-white/10 hover:text-white " +
-              (active ? "bg-white/15 font-bold text-white" : "text-blue-100")
-            }
-          >
-            <Icon size={15} aria-hidden />
-            {label}
-          </Link>
-        );
-      })}
+            return (
+              <Link
+                key={href}
+                href={href}
+                prefetch={href === "/admin/pages" || (intended === href && href !== "/admin" && href !== "/admin/enquiries") ? true : undefined}
+                onPointerEnter={() => setIntended(href)}
+                onFocus={() => setIntended(href)}
+                onPointerDown={() => setIntended(href)}
+                aria-current={active ? "page" : undefined}
+              >
+                <Icon size={16} aria-hidden />
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 }

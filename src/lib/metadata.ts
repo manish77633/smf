@@ -1,7 +1,7 @@
 import { businessDetails } from "./contact-details";
 import type { Metadata } from "next";
-import type { Site } from "./content";
-export function baseUrl(site?: Site | null) {
+import type { Seo, Site, Settings } from "./content";
+export function baseUrl(site?: Pick<Site, "settings"> | null) {
   for (const candidate of [
     site?.settings.baseUrl,
     process.env.NEXT_PUBLIC_SITE_URL,
@@ -10,29 +10,58 @@ export function baseUrl(site?: Site | null) {
     if (!candidate) continue;
     try {
       const url = new URL(candidate);
-      if (["http:", "https:"].includes(url.protocol)) return url.origin;
+      if (["http:", "https:"].includes(url.protocol) && !url.username && !url.password) return url.origin;
     } catch {}
   }
   return "";
 }
-export function homeMetadata(site: Site): Metadata {
-  const s = site.settings,
-    p = site.page.seo,
-    base = baseUrl(site),
-    title = p.title || s.defaultTitle,
-    description = p.description || s.defaultDescription;
-  const canonical = p.canonical || "/";
+export function canonicalUrl(value: string, path: string, base: string) {
+  for (const candidate of [value, path]) {
+    if (!candidate || /[\s\\#]/.test(candidate)) continue;
+    const local = /^\/(?!\/)/.test(candidate);
+    try {
+      const url = local ? base && new URL(candidate, base) : new URL(candidate);
+      if (!url && local) return candidate;
+      if (url && ["http:", "https:"].includes(url.protocol) && !url.username && !url.password)
+        return url.href;
+    } catch {}
+  }
+  return path;
+}
+
+export function searchAppearance(
+  settings: Pick<Settings, "defaultTitle" | "defaultDescription" | "titleTemplate" | "defaultImage">,
+  seo: Seo,
+  path: string,
+  base: string,
+  pageTitle = "",
+) {
+  const label = seo.title || pageTitle || settings.defaultTitle;
+  return {
+    label,
+    title: (seo.title || pageTitle) && settings.titleTemplate.includes("%s")
+      ? settings.titleTemplate.replace("%s", () => label)
+      : label,
+    description: seo.description || settings.defaultDescription,
+    canonical: canonicalUrl(seo.canonical, path, base),
+    image: seo.ogImage || settings.defaultImage,
+  };
+}
+
+type MetadataSite = Site & { bundled?: boolean };
+
+export function pageMetadata(site: MetadataSite, p: Seo, path: string, pageTitle = ""): Metadata {
+  const s = site.settings;
+  const base = baseUrl(site);
+  const { title, label, description, canonical, image } = searchAppearance(s, p, path, base, pageTitle);
+  const twitterImage = p.twitterImage || image;
+  const noIndex = site.bundled || process.env.VERCEL_ENV === "preview" || !process.env.MONGODB_URI;
   return {
     metadataBase: base ? new URL(base) : undefined,
-    title: {
-      absolute:
-        p.title && s.titleTemplate.includes("%s")
-          ? s.titleTemplate.replace("%s", title)
-          : title,
-    },
+    title: { absolute: title },
     description,
-    alternates: { canonical: base ? new URL(canonical, base) : undefined },
-    robots: { index: s.index && p.index, follow: s.follow && p.follow },
+    alternates: { canonical: /^https?:/.test(canonical) ? canonical : undefined },
+    robots: { index: !noIndex && s.index && p.index, follow: !noIndex && s.follow && p.follow },
     icons: s.favicon ? [s.favicon] : undefined,
     verification: {
       google: s.googleVerification || undefined,
@@ -43,24 +72,25 @@ export function homeMetadata(site: Site): Metadata {
     openGraph: {
       type: "website",
       siteName: s.websiteName,
-      title: p.ogTitle || title,
+      title: p.ogTitle || label,
       description: p.ogDescription || description,
-      url: base || undefined,
-      images:
-        (p.ogImage || s.defaultImage) && base
-          ? [p.ogImage || s.defaultImage]
-          : undefined,
+      url: /^https?:/.test(canonical) ? canonical : undefined,
+      images: image && (base || image.startsWith("https://"))
+        ? [{ url: image, alt: p.ogImageAlt || undefined }]
+        : undefined,
     },
     twitter: {
       card: "summary_large_image",
-      title: p.twitterTitle || title,
+      title: p.twitterTitle || label,
       description: p.twitterDescription || description,
-      images:
-        (p.twitterImage || p.ogImage || s.defaultImage) && base
-          ? [p.twitterImage || p.ogImage || s.defaultImage]
-          : undefined,
+      images: twitterImage && (base || twitterImage.startsWith("https://"))
+        ? [{ url: twitterImage, alt: p.twitterImageAlt || (!p.twitterImage ? p.ogImageAlt : undefined) }]
+        : undefined,
     },
   };
+}
+export function homeMetadata(site: MetadataSite): Metadata {
+  return pageMetadata(site, site.page.seo, "/");
 }
 export function structured(site: Site) {
   const details = businessDetails(site);

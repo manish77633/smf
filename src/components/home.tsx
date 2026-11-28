@@ -841,9 +841,9 @@ const sectionViews: SectionViews = {
   },
   footer(s, site) {
     const d = s.content;
-    const headerLogo = site.sections.find(
-      (section) => section.type === "header",
-    )?.content.logo;
+    const headerLogo = d.useHeaderLogo === false
+      ? undefined
+      : site.sections.find((section) => section.type === "header")?.content.logo;
     const contacts = [
       ...sharedContactDetails(site).map((item) => ({ ...item, label: "" })),
       ...sortVisible(d.contactFields || []),
@@ -928,7 +928,9 @@ const sectionViews: SectionViews = {
             ))}
             <div className="col-span-2 min-w-0 lg:col-span-1">
               <h2 className="mb-4 text-base font-extrabold text-white md:text-lg">
-                {d.contactTitle}
+                <SiteLink href="/contact" className="hover:underline">
+                  {d.contactTitle || "Contact"}
+                </SiteLink>
               </h2>
               <ul className="grid gap-3 text-sm md:text-base">
                 {contacts.map(

@@ -92,6 +92,8 @@ export const pageBlock = z.object({
   dark: z.boolean().optional(),
   listedLoansOnly: z.boolean().optional(),
   fallbackTitle: z.string().max(240).optional(),
+  spacing: z.enum(["standard", "extra"]).optional(),
+  secondaryAction: action.optional(),
   fields: list(detailField).optional(),
 });
 export const editablePage = z.object({

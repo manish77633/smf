@@ -66,13 +66,16 @@ export const seo = z.object({
   ogTitle: text,
   ogDescription: copy,
   ogImage: image,
+  ogImageAlt: text.optional(),
   twitterTitle: text,
   twitterDescription: copy,
   twitterImage: image,
+  twitterImageAlt: text.optional(),
   index: flag,
   follow: flag,
   sitemap: flag,
 });
+export type Seo = z.infer<typeof seo>;
 export const entities = {
   loans: ordered.extend({
     title: text,
@@ -237,6 +240,7 @@ export const sections = {
   }),
   banner: z.object({ heading: text, description: copy, cta: action }),
   footer: z.object({
+    useHeaderLogo: flag.optional(),
     logo: media,
     description: copy,
     columns: list(

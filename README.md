@@ -38,7 +38,7 @@ Sign in at [http://localhost:3000/admin/login](http://localhost:3000/admin/login
 
 ## Editing and publishing
 
-Use **Pages** in the left sidebar to open the page card grid. **Loan Cards** manages the shared cards used by the homepage and Services. Publishing a new visible card creates a matching editable detail page when that URL has no page yet. The card and its detail page can be edited independently after creation. Upload images once in **Media Library** and select them from an editor’s image picker. When Cloudinary is unconfigured, uploaded images are resized to WebP and stored in MongoDB. **Shared Footer** publishes one footer across the public pages.
+Use **Pages** and **Loan services** in the left sidebar to search pages by title or URL and view their publication status. Open **Loan services → Manage loan cards** to edit the shared cards used by the homepage and Services. Publishing a new visible card creates an editable detail page when that URL has no page yet. Upload images in **Media library** and select them from an editor’s image picker. When Cloudinary is unconfigured, uploaded images are resized to WebP and stored in MongoDB. **Footer** edits the shared footer across public pages.
 
 
 Open **Pages** to edit the homepage, **Our Loan Services** at `/services`, **Business Loan** at `/business-loan`, and **Contact Us** at `/contact`, or to create a new page. Additional pages support reusable sections, page SEO, private draft previews, and publish or unpublish controls. Shared navigation, footer, loan records, and enquiry options are managed in their existing modules. The Contact page has its own editable contact cards, form copy, consent text, and office map. Use a verified Google Maps embed URL in **Office location and map** when it is available. Edit the red call to action above the footer in **Homepage Management → Final CTA**. Its published settings apply across pages.
@@ -48,12 +48,12 @@ Open **Pages** to edit the homepage, **Our Loan Services** at `/services`, **Bus
 - Use **Save draft** and then **Preview saved draft** to inspect changes. **Publish** promotes the current draft and refreshes the homepage cache.
 - Upload JPEG, PNG and WebP images up to 4 MB under **Media Library**. Choose the replacement in the editor, then publish before removing a previously published image.
 - Contact Management controls form text, additional enquiry options and SMTP recipient. The Enquiries module shows submission source, consent, email delivery status and internal notes, and exports the current filters as CSV.
-- Configure page SEO in **SEO Management** and defaults, verification, organization details, and redirects in **General Settings**. Add the public WhatsApp number with the country code, using digits only.
+- Use **SEO** to preview and publish search and social settings for the site, homepage, or a standalone page. Use **Site settings** for redirects and the public WhatsApp number. Enter the WhatsApp number with the country code, using digits only.
 - Publish statistics after confirming their values. Publish testimonials after obtaining consent. Add relevant, approved YouTube videos before making them visible. Public article cards open inline because public article routes are outside this phase.
 
 ## Shared business contact details
 
-Open **Admin → Contact Details** and publish the phone, email, office address, opening hours and optional directions URL. These fields are shared by the homepage, Contact page and footer.
+Open **Contact details** or **Footer** and edit **Shared contact details**. Publishing from either editor updates the phone, email, office address, opening hours, and directions on the homepage, Contact page, and footer.
 
 ## Deploy to Vercel
 

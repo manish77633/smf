@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { adminEmail, signIn } from "@/auth";
+import PasswordField from "./password-field";
 export default async function Login({
   searchParams,
 }: {
@@ -55,16 +56,7 @@ export default async function Login({
               className="field"
             />
           </label>
-          <label className="grid gap-1 text-sm font-bold">
-            Password
-            <input
-              name="password"
-              autoComplete="current-password"
-              type="password"
-              required
-              className="field"
-            />
-          </label>
+          <PasswordField />
           <button className="button disabled:opacity-50" disabled={!configured}>
             Sign in
           </button>
