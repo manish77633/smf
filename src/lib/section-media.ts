@@ -28,7 +28,30 @@ function defaultPhoto(file: string | undefined): Photo {
   return { image: url, alt: bundledMedia.find((asset) => asset.url === url)?.alt ?? "" };
 }
 
+export function isLoanService(slug: string): boolean {
+  return Object.hasOwn(loanImages, slug);
+}
+
+const previousOverview: Record<string, string> = {
+  "gold-loan": "gold-loan.jpg",
+  "construction-loan": "construction-loan.jpg",
+  "loan-against-property": "home.jpg",
+  "group-loan": "team.jpg",
+  "personal-loan": "checklist.jpg",
+  "business-loan": "business-loan.jpg",
+};
+
+export function loanOverviewPhoto(slug: string, photo: Photo): Photo {
+  if (!isLoanService(slug)) return photo;
+  if (photo.image && photo.image !== "/images/" + previousOverview[slug]) return photo;
+  return defaultPhoto("finance-" + slug + "-overview.webp");
+}
+
 export function pageHeroPhoto(slug: string, photo: Photo): Photo {
+  if (isLoanService(slug)) {
+    if (photo.image && photo.image !== "/images/" + loanImages[slug]) return photo;
+    return defaultPhoto("finance-" + slug + "-hero.webp");
+  }
   if (photo.image) return photo;
   const fallback = defaultPhoto(Object.hasOwn(pageHeroImages, slug) ? pageHeroImages[slug] : undefined);
   return { ...fallback, alt: photo.alt || fallback.alt };
@@ -40,7 +63,9 @@ export function homeHeroPhoto(photo: Photo): Photo {
 
 export function mobileHeroPhoto(photo: Photo, mobile?: Photo): Photo | undefined {
   if (mobile?.image) return mobile;
-  const file = mobileHeroImages.get(photo.image);
+  const loanSlug = Object.keys(loanImages).find(slug => photo.image === "/images/finance-" + slug + "-hero.webp");
+  const previousPhoto = loanSlug ? "/images/" + loanImages[loanSlug] : photo.image;
+  const file = mobileHeroImages.get(previousPhoto) || (loanSlug ? loanImages[loanSlug] : undefined);
   return file ? defaultPhoto(file) : undefined;
 }
 

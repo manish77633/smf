@@ -9,10 +9,11 @@ const mobileFocus: Record<string, string> = {
   "/images/home.jpg": "70% top",
 };
 
-export default function HeroPhoto({ photo, mobile, priority, className }: {
+export default function HeroPhoto({ photo, mobile, priority, className, fullWidth = false }: {
   photo: Photo;
   mobile?: Photo;
   priority: boolean;
+  fullWidth?: boolean;
   className: string;
 }) {
   const portrait = mobileHeroPhoto(photo, mobile);
@@ -21,7 +22,7 @@ export default function HeroPhoto({ photo, mobile, priority, className }: {
   const alt = base.alt || portrait?.alt || "";
   const { props } = getImageProps({
     src: base.image, alt, fill: true,
-    sizes: "(max-width: 767px) max(100vw, 150svh), 64vw",
+    sizes: fullWidth ? "100vw" : "(max-width: 767px) max(100vw, 150svh), 64vw",
     loading: priority ? "eager" : "lazy",
     fetchPriority: priority ? "high" : "auto",
   });

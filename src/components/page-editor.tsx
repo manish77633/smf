@@ -34,7 +34,7 @@ import {
 } from "@/lib/pages";
 import { editPage } from "@/app/admin/page-actions";
 import type { Content, Records } from "@/lib/content";
-import { pageHeroPhoto, serviceCardPhoto } from "@/lib/section-media";
+import { loanOverviewPhoto, pageHeroPhoto, serviceCardPhoto } from "@/lib/section-media";
 import { serviceCatalog } from "@/lib/service-catalog";
 const introOnly = pageBlock.pick({ intro: true });
 const fields = {
@@ -597,6 +597,8 @@ export default function PageEditor({
                           ...block,
                           photo: pageHeroPhoto(doc.slug, block.photo),
                         }
+                        : block.type === "overview"
+                          ? { ...block, photo: loanOverviewPhoto(doc.slug, block.photo) }
                         : block.type === "contactForm" && contact?.form
                           ? { ...block, form: { ...contact.form, ...block.form } }
                           : block}

@@ -17,10 +17,11 @@ import { sortVisible, type Site, type Action } from "@/lib/content";
 import { loanOptions } from "@/lib/site";
 import { cleanRich } from "@/lib/rich";
 import { emptyBlock, type EditablePage, type PageBlock } from "@/lib/pages";
-import { pageHeroPhoto, serviceCardPhoto } from "@/lib/section-media";
+import { isLoanService, loanOverviewPhoto, pageHeroPhoto, serviceCardPhoto } from "@/lib/section-media";
 import { serviceCatalog } from "@/lib/service-catalog";
 import HeroPhoto from "./hero-photo";
 import "./services-page.css";
+import "./loan-hero.css";
 
 function Block({
   block: b,
@@ -76,9 +77,10 @@ function Block({
   if (b.type === "hero") {
     const Title = primary ? "h1" : "h2";
     const photo = pageHeroPhoto(pageSlug, b.photo);
+    const loanHero = isLoanService(pageSlug);
     return (
-      <section className="public-hero detail-hero relative isolate overflow-hidden">
-        <HeroPhoto photo={photo} mobile={b.mobilePhoto} className="detail-hero-photo" priority={primary} />
+      <section className={`public-hero detail-hero relative isolate overflow-hidden${loanHero ? " loan-hero" : ""}`}>
+        <HeroPhoto photo={photo} mobile={b.mobilePhoto} className="detail-hero-photo" priority={primary} fullWidth={loanHero} />
         <div className="public-hero-inner wrap detail-hero-inner relative py-[clamp(48px,5vw,76px)]">
           <div>
             <p className="eyebrow text-[#ff747b]">{d.eyebrow}</p>
@@ -88,7 +90,10 @@ function Block({
             <p className="mt-5 max-w-[52ch] text-sm leading-relaxed text-ink md:text-lg">
               {d.description}
             </p>
-            {b.cta.label && <div className="mt-6">{cta}</div>}
+            <div className="mt-6 flex flex-wrap gap-3">
+              {b.cta.label && cta}
+              {loanHero && b.secondaryAction && <LinkButton action={b.secondaryAction} kind="outline" />}
+            </div>
           </div>
           {(b.cardTitle || b.cardCopy) && (
             <aside className="mt-6 max-w-md rounded-xl border border-rule bg-white/80 p-4">
@@ -284,7 +289,8 @@ function Block({
         </div>
       </section>
     );
-  if (b.type === "overview")
+  if (b.type === "overview") {
+    const photo = loanOverviewPhoto(pageSlug, b.photo);
     return (
       <section className="band">
         <div className="wrap grid items-center gap-9 lg:grid-cols-[1.25fr_1fr] lg:gap-[5%]">
@@ -296,11 +302,11 @@ function Block({
             />
             {b.cta.label && <div className="mt-5">{cta}</div>}
           </div>
-          {b.photo.image && (
+          {photo.image && (
             <figure className="relative">
               <div className="relative aspect-[1.28] overflow-hidden rounded-2xl shadow-[0_14px_45px_#06265320]">
                 <Picture
-                  photo={b.photo}
+                  photo={photo}
                   sizes="(min-width:1024px) 42vw, 90vw"
                 />
               </div>
@@ -315,6 +321,7 @@ function Block({
         </div>
       </section>
     );
+  }
   if (b.type === "highlights")
     return (
       <section className="band bg-tint">
@@ -587,7 +594,7 @@ export function ContentPage({
           />
         )}
         {sections.map((s) => {
-          const extraButton = s.secondaryAction?.label &&
+          const extraButton = !(s.type === "hero" && isLoanService(page.slug)) && s.secondaryAction?.label &&
             (s.secondaryAction.url || s.secondaryAction.enquiry);
           if (s.spacing !== "extra" && !extraButton) {
             return <Block key={s.id} block={s} site={site} primary={s === hero} pageSlug={page.slug} />;
