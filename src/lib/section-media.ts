@@ -34,6 +34,7 @@ export function homeHeroPhoto(photo: Photo): Photo {
 export function mobileHeroPhoto(photo: Photo, mobile?: Photo): Photo | undefined {
   if (mobile?.image) return mobile;
   if (photo.image === "/images/reference-hero.webp") return defaultPhoto("reference-hero-mobile.webp");
+  if (photo.image === "/images/reference-shop.webp") return defaultPhoto("reference-shop-mobile.webp");
 }
 
 export function serviceCardPhoto(slug: string, photo?: Photo): Photo {

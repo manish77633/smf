@@ -381,18 +381,10 @@
     isolation: isolate;
     background: #fff9f0;
   }
-  .public-hero-photo[data-portrait="false"]::before {
-    content: "";
-    position: absolute;
-    inset: -20px;
-    background: var(--hero-backdrop) center / cover;
-    filter: blur(20px) brightness(.7);
-  }
   .public-hero .public-hero-photo img {
-    object-fit: contain;
-    object-position: center;
+    object-fit: cover;
+    object-position: var(--hero-mobile-focus, center);
   }
-  .public-hero .public-hero-photo[data-portrait="true"] img { object-fit: cover; }
   .public-hero .public-hero-photo::after {
     content: "";
     display: block;
