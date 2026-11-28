@@ -59,6 +59,20 @@ const hindi: Record<string, string> = {
   "Visit our office": "हमारे कार्यालय आएँ",
   "Email us": "हमें ईमेल करें",
   "Need help?": "मदद चाहिए?",
+  "Finance solutions for your next big step": "आपके अगले कदम के लिए वित्तीय समाधान",
+  "Talk to our team": "हमारी टीम से बात करें",
+  "FOR YOUR AMBITION": "आपके लक्ष्यों के लिए",
+  "Give your business room to": "अपने कारोबार को",
+  "grow.": "बढ़ने का मौका दें।",
+  "Explore financing options that can help you manage working capital, invest in opportunities and move forward with clarity.": "रोज़मर्रा के खर्च और नए अवसरों के लिए ऋण विकल्प देखें।",
+  "Explore Business Loans": "व्यवसाय ऋण देखें",
+  "Speak to an Advisor": "सलाहकार से बात करें",
+  "FOR YOUR PLANS": "आपकी योजनाओं के लिए",
+  "Take the next step with": "अपना अगला कदम",
+  "confidence.": "भरोसे के साथ बढ़ाएँ।",
+  "Let’s talk about your plans and the financing options that may fit.": "अपनी योजनाओं और उनके लिए सही ऋण विकल्पों पर हमारी टीम से बात करें।",
+  "Guidance at every step": "हर कदम पर मार्गदर्शन",
+  "Clear next steps": "आगे के कदम स्पष्ट हैं",
 };
 
 const fields = new Set(["title", "heading", "highlight", "description", "eyebrow", "label", "left", "right", "caption", "cardTitle", "cardCopy", "supportHeading", "productsHeading", "emiTitle", "emiDescription", "emiLabel", "reasonsHeading"]);

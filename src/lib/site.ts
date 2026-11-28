@@ -17,12 +17,39 @@ export async function getSite(): Promise<(Site & { bundled?: true }) | null> {
   const site = await (process.env.NODE_ENV === "development"
     ? readPublished()
     : published());
-  return site === "unseeded" ? bundledSite : site && { ...site, sections: site.sections.map(withHighlights) };
+  return site === "unseeded" ? bundledSite : site && { ...site, sections: site.sections.map(withCurrentDefaults) };
 }
-function withHighlights(section: Site["sections"][number]): Site["sections"][number] {
-  return section.type === "trust" && !section.content.homeHighlights
-    ? { ...section, content: { ...section.content, homeHighlights } }
-    : section;
+function withCurrentDefaults(section: Site["sections"][number]): Site["sections"][number] {
+  if (section.type === "trust" && !section.content.homeHighlights)
+    return { ...section, content: { ...section.content, homeHighlights } };
+  if (section.type !== "hero") return section;
+  const hero = draft.sections.find((item) => item.type === "hero");
+  const current = hero?.content.slides[0];
+  if (!current) return section;
+  const visible = section.content.slides.filter((slide) => slide.visible).sort((a,b) => a.order - b.order);
+  const first = visible[0];
+  if (!first || first.intro.heading !== "Finance for what’s" ||
+      first.intro.highlight !== "next." ||
+      first.intro.description !== "Explore options for your personal, property and business goals." ||
+      first.photo.image !== "/images/hero.jpg") return section;
+  const selectRefreshed = section.content.initialSlide === 2 &&
+    visible[1]?.intro.heading === "Give your business room to";
+  return {
+    ...section,
+    content: {
+      ...section.content,
+      initialSlide: selectRefreshed ? 1 : section.content.initialSlide,
+      slides: section.content.slides.map((slide) => slide !== first ? slide : {
+        ...slide,
+        intro: current.intro,
+        photo: current.photo,
+        opacity: slide.opacity === 0.78 ? current.opacity : slide.opacity,
+        cta: slide.cta.label === "Explore Loans" ? { ...slide.cta, label: current.cta.label } : slide.cta,
+        advisorCta: slide.advisorCta.label === "Speak to an Advisor"
+          ? { ...slide.advisorCta, label: current.advisorCta.label } : slide.advisorCta,
+      }),
+    },
+  };
 }
 async function readPublished(): Promise<Site | null | "unseeded"> {
   await connect();
@@ -78,7 +105,7 @@ export async function getDraft(): Promise<Site & { revision: number }> {
         return {
           ...page.draft,
           sections: page.draft.sections.map(
-            (item) => withHighlights(navigation.find((n) => n.id === item.id) ?? item),
+            (item) => withCurrentDefaults(navigation.find((n) => n.id === item.id) ?? item),
           ),
           settings,
           records: Object.fromEntries(

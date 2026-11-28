@@ -289,7 +289,7 @@ const sectionViews: SectionViews = {
                   className="relative min-w-0 flex-[0_0_100%] overflow-hidden"
                 >
                   <div className="reference-hero-photo"><Picture photo={item.photo.image === "/images/hero.jpg" ? { image: "/images/reference-hero.webp", alt: "Tailor beside her sewing machine" } : item.photo} sizes="64vw" priority={index === initial} /></div>
-                  <div className="absolute inset-0 bg-[#fff9f0]" style={{ opacity: item.opacity }} />
+                  <div className="reference-hero-tint absolute inset-0" style={{ opacity: item.opacity }} />
                   <div className="hero-wash absolute inset-0" />
                   <div className="reference-hero-inner wrap relative flex flex-col">
                     <div className="reference-hero-copy">
