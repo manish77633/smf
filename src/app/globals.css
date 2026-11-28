@@ -166,7 +166,18 @@
   background: linear-gradient(90deg,#fffaf4 0%,#fffaf4ed 35%,#fff8f0a8 51%,transparent 73%);
 }
 .reference-hero img { object-position: center 44%; }
-.reference-hero-inner { z-index: 1; }
+.reference-hero-inner {
+  z-index: 1;
+  height: 605px;
+  padding-block: 2rem 4.75rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.reference-hero-copy {
+  width: min(100%, 510px);
+  flex-shrink: 0;
+  margin-block: auto;
+}
 .reference-hero .hero-heading {
   max-width: 570px;
   font-family: var(--public-display), Georgia, serif;
@@ -221,7 +232,6 @@
 }
 @media(max-width:720px) {
  .reference-hero .hero-wash { background:linear-gradient(90deg,#fffaf4f2 0%,#fffaf4d9 65%,#fffaf455 100%); }
- .reference-hero-inner { min-height:440px; }
  .reference-hero .hero-heading { font-size:clamp(2.8rem,12vw,4.2rem); }
  .need-wrap,.product-wrap { grid-template-columns:1fr; }
  .need-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -379,7 +389,6 @@
   .public-site [data-section="bar"] .wrap { width:91%; }
   .public-site [data-section="header"] header .wrap { min-height:84px; }
   .public-site [data-section="header"] header a[aria-label="Home"] { width:176px; height:68px; }
-  .reference-hero-inner { padding-block:30px; }
   .reference-hero-inner p:not(.eyebrow) { font-size:clamp(1rem,1.45vw,1.4rem); line-height:1.15; }
   .reference-hero-photo::after {
     content:"";
@@ -417,7 +426,6 @@ html[lang="hi"] .reference-hero .hero-heading {
 }
 
 html[lang="hi"] .reference-hero .hero-heading span { display: block; }
-html[lang="hi"] .reference-hero-inner { padding-bottom: 4.75rem; }
 html[lang="hi"] .reference-hero-inner p:not(.eyebrow) { line-height: 1.55; }
 html[lang="hi"] .need-wrap > h2,
 html[lang="hi"] .product-wrap > h2,
@@ -432,7 +440,10 @@ html[lang="hi"] .detail-hero .hero-heading { line-height: 1.35; }
 }
 @media (min-width: 768px) {
   .reference-hero .hero-carousel-controls { justify-content: flex-end; gap: 1rem; }
-  html[lang="hi"] .reference-hero-inner > div { max-width: min(43vw, 590px); }
+}
+@media (min-width: 1024px) {
+  .reference-hero-inner { height: clamp(510px, 30.5vw, 580px); }
+  .reference-hero-copy { width: min(43vw, 590px); }
 }
 @media(max-width:767px) {
   .detail-hero-inner { width:auto; }

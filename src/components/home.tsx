@@ -291,8 +291,8 @@ const sectionViews: SectionViews = {
                   <div className="reference-hero-photo"><Picture photo={item.photo.image === "/images/hero.jpg" ? { image: "/images/reference-hero.webp", alt: "Tailor beside her sewing machine" } : item.photo} sizes="64vw" priority={index === initial} /></div>
                   <div className="absolute inset-0 bg-[#fff9f0]" style={{ opacity: item.opacity }} />
                   <div className="hero-wash absolute inset-0" />
-                  <div className="reference-hero-inner wrap relative flex min-h-[390px] items-center py-10 md:min-h-[470px] lg:min-h-[clamp(370px,25vw,520px)]">
-                    <div className="max-w-[510px]">
+                  <div className="reference-hero-inner wrap relative flex flex-col">
+                    <div className="reference-hero-copy">
                       {item.intro.eyebrow && <p className="eyebrow">{item.intro.eyebrow}</p>}
                       <Title className="hero-heading">{item.intro.heading === "Big Dreams Begin With" ? <>Big Dreams Begin<br />With</> : item.intro.heading} <span>{item.intro.highlight}</span></Title>
                       <p className="mt-5 max-w-[430px] text-[15px] leading-relaxed md:text-lg">{item.intro.description}</p>
