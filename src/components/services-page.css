@@ -2,14 +2,16 @@
   width: min(91%, 1280px);
 }
 
-.services-page .detail-hero-inner {
-  width: 42%;
-  max-width: 640px;
-  margin-inline: max(4.5%, calc((100% - 1280px) / 2));
-}
+@media (min-width: 768px) {
+  .services-page .detail-hero-inner {
+    width: 42%;
+    max-width: 640px;
+    margin-inline: max(4.5%, calc((100% - 1280px) / 2));
+  }
 
-.services-page .detail-hero-photo {
-  inset-inline-start: 47%;
+  .services-page .detail-hero-photo {
+    inset-inline-start: 47%;
+  }
 }
 
 .services-page .detail-hero-heading,
@@ -70,15 +72,4 @@ html[lang="hi"] .services-page .detail-hero .hero-heading {
 
 .services-page .service-product-content a:hover {
   text-decoration: underline;
-}
-
-@media (max-width: 767px) {
-  .services-page .detail-hero-inner {
-    width: min(91%, 640px);
-    margin-inline: auto;
-  }
-
-  .services-page .detail-hero-photo {
-    inset-inline-start: auto;
-  }
 }

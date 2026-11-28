@@ -1,5 +1,6 @@
 "use client";
 import { businessDetails } from "@/lib/contact-details";
+import { homeHeroPhoto } from "@/lib/section-media";
 import dynamic from "next/dynamic";
 import { useEffect, useState, useTransition } from "react";
 import {
@@ -71,8 +72,10 @@ type Props = {
   tab: string;
   media: Asset[];
   loanPageSlugs: string[];
+  publishedImages: React.ReactNode;
 };
 const fieldLabels: Record<string, string> = {
+  mobilePhoto: "Mobile portrait override",
   visible: "Show on website",
   example: "Demo testimonial",
   enquiry: "Open company enquiry form",
@@ -225,7 +228,8 @@ export function Row({
               />
             </div>
             <figcaption className="break-words px-3 py-2 text-xs text-muted">
-              {String(data.alt || "Selected image")}
+              <span className="block font-bold">{String(data.alt || "Selected image")}</span>
+              <span className="block">{photo}</span>
             </figcaption>
           </figure>
         )}
@@ -260,6 +264,9 @@ export function Row({
       <div className="grid gap-3">
         {values.map((item, i) => {
           const row = item as Record<string, unknown>;
+          const slide = name === "slides"
+            ? item as Content<"hero">["slides"][number]
+            : undefined;
           const title =
             typeof row === "object" && row
               ? row.title || row.label || row.name || row.question || row.from
@@ -270,10 +277,17 @@ export function Row({
               className="rounded-md border border-rule bg-slate-50/70"
             >
               <summary className="px-3 py-2 text-xs font-bold">
-                {typeof title === "string" && title ? title : "Item " + (i + 1)}
+                {slide?.intro.heading || (typeof title === "string" && title ? title : "Item " + (i + 1))}
                 {typeof row?.visible === "boolean" && (
                   <span className="ml-2 font-normal text-muted">
                     {row.visible ? "Visible" : "Hidden"}
+                  </span>
+                )}
+                {slide?.photo.image && (
+                  <span className="mt-1 flex items-center gap-2 break-all font-normal text-muted">
+                    <Image src={slide.photo.image} alt="" width={64} height={40}
+                      className="h-10 w-16 shrink-0 rounded object-cover" unoptimized />
+                    {slide.photo.image}
                   </span>
                 )}
               </summary>
@@ -556,7 +570,14 @@ function LoanCards({
                   <h3 className="mt-1 break-words text-base font-extrabold">
                     {item.title || "New loan card"}
                   </h3>
-                  <p className="mt-1 truncate text-xs text-muted">
+                  {item.photo?.image && (
+                    <div className="mt-2 flex items-center gap-2 text-xs text-muted">
+                      <Image src={item.photo.image} alt={item.photo.alt} width={64} height={40}
+                        className="h-10 w-16 shrink-0 rounded object-cover" unoptimized />
+                      <span className="break-all">{item.photo.image}</span>
+                    </div>
+                  )}
+                  <p className="mt-1 break-words text-xs text-muted">
                     {item.description}
                   </p>
                 </div>
@@ -665,6 +686,7 @@ export function SortableEditorSection({
   remove,
   duplicate,
   collapsible = false,
+  initiallyExpanded = false,
 }: {
   section: { id: string; label: string; type: string; visible: boolean };
   children: React.ReactNode;
@@ -675,8 +697,9 @@ export function SortableEditorSection({
   remove?: () => void;
   duplicate?: () => void;
   collapsible?: boolean;
+  initiallyExpanded?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(!collapsible);
+  const [expanded, setExpanded] = useState(!collapsible || initiallyExpanded);
   const {
     setNodeRef,
     setActivatorNodeRef,
@@ -770,7 +793,7 @@ export function SortableEditorSection({
     </div>
   );
 }
-export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
+export default function Editor({ initial, tab, media, loanPageSlugs, publishedImages }: Props) {
   const [doc, set] = useState(initial),
     [saved, setSaved] = useState(initial);
   const [selection, setSelection] = useState<string | null>(null);
@@ -911,6 +934,9 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
   const editorBody = (section: Section) => {
     const collection =
       section.type in entities ? (section.type as EntityKey) : undefined;
+    const headerLogo = section.type === "footer" && section.content.useHeaderLogo !== false
+      ? doc.sections.find((item) => item.type === "header")?.content.logo
+      : undefined;
     return (
       <>
         <label className="mb-4 grid max-w-md gap-1 text-xs font-bold">
@@ -944,9 +970,16 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
           </div>
         )}
         {section.type === "footer" && (
-          <p className="mb-3 text-sm text-muted">
-            Turn off the header logo option to use a separate footer logo.
-          </p>
+          <div className="mb-3 text-sm text-muted">
+            {headerLogo?.image && (
+              <p className="mb-2 flex items-center gap-3 break-all">
+                <Image src={headerLogo.image} alt={headerLogo.alt} width={80} height={40}
+                  className="h-10 w-20 shrink-0 object-contain" unoptimized />
+                <span>Using the header logo <strong>{headerLogo.image}</strong></span>
+              </p>
+            )}
+            <p>Turn off the header logo option to use a separate footer logo.</p>
+          </div>
         )}
         {section.type === "testimonials" && (
           <p className="mb-3 text-sm text-muted">
@@ -961,6 +994,10 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
               ? { loanMenu: true, loanMenuUrl: "/services", ...section.content }
               : section.type === "footer"
                 ? { useHeaderLogo: true, ...section.content }
+                : section.type === "hero"
+                  ? { ...section.content, slides: section.content.slides.map((slide) => ({
+                      ...slide, photo: homeHeroPhoto(slide.photo),
+                    })) }
                 : section.content
           }
           onChange={(v) =>
@@ -1018,6 +1055,7 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
     });
   return (
     <div className="mx-auto max-w-7xl">
+      {publishedImages}
       <div className="mb-3 flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="mb-2 text-xs font-bold text-muted">

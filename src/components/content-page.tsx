@@ -16,17 +16,11 @@ import {
 import { sortVisible, type Site, type Action } from "@/lib/content";
 import { loanOptions } from "@/lib/site";
 import { cleanRich } from "@/lib/rich";
-import type { EditablePage, PageBlock } from "@/lib/pages";
+import { emptyBlock, type EditablePage, type PageBlock } from "@/lib/pages";
+import { pageHeroPhoto, serviceCardPhoto } from "@/lib/section-media";
+import { serviceCatalog } from "@/lib/service-catalog";
+import HeroPhoto from "./hero-photo";
 import "./services-page.css";
-
-const servicePhotos: Record<string, string> = {
-  "gold-loan": "gold-loan.jpg",
-  "business-loan": "reference-shop.webp",
-  "construction-loan": "construction-loan.jpg",
-  "loan-against-property": "home.jpg",
-  "group-loan": "reference-sewing.webp",
-  "personal-loan": "reference-family.webp",
-};
 
 function Block({
   block: b,
@@ -81,26 +75,11 @@ function Block({
     );
   if (b.type === "hero") {
     const Title = primary ? "h1" : "h2";
-    const images: Record<string, string> = {
-      services: "reference-hero.webp",
-      "business-loan": "reference-shop.webp",
-      "personal-loan": "reference-family.webp",
-      "construction-loan": "construction-loan.jpg",
-      "loan-against-property": "home.jpg",
-      "gold-loan": "gold-loan.jpg",
-      "group-loan": "reference-sewing.webp",
-      contact: "team.jpg",
-    };
-    const image = images[pageSlug];
-    const photo = b.photo.image || !image ? b.photo : { image: "/images/" + image, alt: "" };
+    const photo = pageHeroPhoto(pageSlug, b.photo);
     return (
       <section className="public-hero detail-hero relative isolate overflow-hidden">
-        {photo.image && (
-          <div className="detail-hero-photo">
-            <Picture photo={photo} sizes="(min-width: 768px) 55vw, 100vw" priority={primary} />
-          </div>
-        )}
-        <div className="wrap detail-hero-inner relative py-[clamp(48px,5vw,76px)]">
+        <HeroPhoto photo={photo} mobile={b.mobilePhoto} className="detail-hero-photo" priority={primary} />
+        <div className="public-hero-inner wrap detail-hero-inner relative py-[clamp(48px,5vw,76px)]">
           <div>
             <p className="eyebrow text-[#ff747b]">{d.eyebrow}</p>
             <Title className="hero-heading max-w-[760px]">
@@ -222,20 +201,7 @@ function Block({
     );
   }
   if (b.type === "services") {
-    const loans = sortVisible(site.records.loans),
-      selected = b.items.length
-        ? items.flatMap((item) => {
-            const loan = loans.find((l) => l.slug === item.title);
-            return loan
-              ? [{ ...loan, description: item.description || loan.description }]
-              : [];
-          })
-        : loans;
-    const configured = new Set(b.items.map((item) => item.title));
-    const rows =
-      b.items.length && !b.listedLoansOnly
-        ? [...selected, ...loans.filter((loan) => !configured.has(loan.slug))]
-        : selected;
+    const rows = serviceCatalog(b, site.records.loans);
     return (
       <section className="band service-catalog" id="loan-categories">
         <div className="wrap">
@@ -249,17 +215,13 @@ function Block({
           </div>
           <div className="service-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
             {rows.map((loan, i) => {
-              const fallback = servicePhotos[loan.slug];
-              const photo = loan.photo?.image ? loan.photo : fallback ? {
-                image: "/images/" + fallback,
-                alt: "",
-              } : null;
+              const photo = serviceCardPhoto(loan.slug, loan.photo);
               return (
                 <article
                   key={loan.slug + "-" + i}
                   className="service-product panel lift-card flex flex-col overflow-hidden"
                 >
-                  {photo && (
+                  {photo.image && (
                     <div className="service-product-photo card-photo relative aspect-video overflow-hidden bg-tint">
                       <Picture
                         photo={photo}
@@ -540,9 +502,11 @@ function Block({
 export function ContentPage({
   page,
   site,
+  children,
 }: {
   page: EditablePage;
   site: Site;
+  children?: React.ReactNode;
 }) {
   const link = <T extends Action>(action: T): T =>
     action.url.startsWith("#") && !action.enquiry
@@ -612,9 +576,15 @@ export function ContentPage({
         ))}
       <main id="main" className={page.slug === "services" ? "public-site services-page" : "public-site"}>
         {!hero && (
-          <div className="public-hero bg-navy py-16 text-white">
-            <h1 className="wrap hero-heading">{page.title}</h1>
-          </div>
+          <Block
+            block={{
+              ...emptyBlock("hero", page.slug),
+              intro: { eyebrow: "", heading: page.title, highlight: "", description: "" },
+            }}
+            site={site}
+            primary
+            pageSlug={page.slug}
+          />
         )}
         {sections.map((s) => {
           const extraButton = s.secondaryAction?.label &&
@@ -633,6 +603,7 @@ export function ContentPage({
             </div>
           );
         })}
+        {children}
       </main>
       {[
         ...shell.filter((s) => s.type === "banner"),

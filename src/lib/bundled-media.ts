@@ -10,6 +10,7 @@ export const bundledMedia = [
   ["compare.jpg", "Person using a card and laptop"],
   ["home.jpg", "House model beside keys"],
   ["reference-hero.webp", "Tailor beside her sewing machine"],
+  ["reference-hero-mobile.webp", "Tailor beside her sewing machine in her fabric shop"],
   ["reference-shop.webp", "Shopkeeper in his store"],
   ["reference-sewing.webp", "Tailor working with pink fabric"],
   ["reference-dairy.webp", "Dairy farmer with a buffalo"],

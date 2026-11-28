@@ -23,9 +23,8 @@
   html:has(dialog[open]) {
     overflow: hidden;
   }
-  section[id] {
-    scroll-margin-top: 1rem;
-  }
+  section[id] { scroll-margin-top: 1rem; }
+  body:has(.site-navbar) :is(main[id], section[id]) { scroll-margin-top: 6.5rem; }
 }
 @layer components {
   [data-carousel-track="preinit"] {
@@ -354,6 +353,8 @@
 }
 
 .reference-hero-photo { position:absolute; inset:0 0 0 38%; }
+.public-hero-photo { display: block; }
+.public-hero-photo img { object-fit: cover; }
 .reference-hero-tint { background:linear-gradient(90deg,#fff9f0 30%,transparent 72%); }
 .reference-hero .hero-wash { opacity:1 !important; background:linear-gradient(90deg,#fff9f0 0%,#fff9f0 36%,#fff9f0d9 42%,transparent 55%); }
 .reference-hero-inner { width:89.5%; }
@@ -369,9 +370,58 @@
 .need-icon { bottom:-4px; }
 .emi-photo { width:34%; margin-left:auto; align-self:stretch; object-fit:contain; mix-blend-mode:multiply; }
 @media(max-width:720px) {
-  .reference-hero-photo { inset:0; }
-  .reference-hero .hero-wash { background:linear-gradient(90deg,#fff9f0f5,#fff9f0d9 60%,#fff9f075); }
   .need-wrap { grid-template-columns:1fr; }
+}
+
+@media (max-width: 767px) {
+  .public-hero .public-hero-photo {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    isolation: isolate;
+    background: #fff9f0;
+  }
+  .public-hero-photo[data-portrait="false"]::before {
+    content: "";
+    position: absolute;
+    inset: -20px;
+    background: var(--hero-backdrop) center / cover;
+    filter: blur(20px) brightness(.7);
+  }
+  .public-hero .public-hero-photo img {
+    object-fit: contain;
+    object-position: center;
+  }
+  .public-hero .public-hero-photo[data-portrait="true"] img { object-fit: cover; }
+  .public-hero .public-hero-photo::after {
+    content: "";
+    display: block;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #fff9f01a 8%, #fff9f01a 24%, #fff9f0b8 49%, #fff9f0f5 66%, #fff9f0 91%);
+  }
+  .reference-hero .hero-wash, .reference-hero-tint { display: none; }
+  .public-hero .public-hero-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 89.5%;
+    margin-inline: auto;
+    height: 100%;
+    padding-block: 2.5rem;
+  }
+  .public-hero-photo ~ .public-hero-inner {
+    min-height: max(600px, calc(100svh - 106px));
+    padding-top: clamp(8rem, 29svh, 18rem);
+  }
+  .reference-hero .public-hero-inner { padding-bottom: 4.5rem; }
+  .reference-hero-copy { margin-block: 0; }
+  .public-hero .public-hero-inner .hero-heading { font-size: clamp(2rem, 9vw, 3.7rem); }
+  .reference-hero .hero-carousel-controls { color: var(--color-navy); }
+  .reference-hero .hero-carousel-controls button[aria-current="false"] span {
+    background: #06265355;
+  }
 }
 
 .reference-hero .hero-heading::after {
@@ -444,9 +494,4 @@ html[lang="hi"] .detail-hero .hero-heading { line-height: 1.35; }
 @media (min-width: 1024px) {
   .reference-hero-inner { min-height: clamp(510px, 30.5vw, 580px); }
   .reference-hero-copy { width: min(43vw, 590px); }
-}
-@media(max-width:767px) {
-  .detail-hero-inner { width:auto; }
-  .detail-hero-photo { position:relative; inset:auto; height:clamp(180px,52vw,300px); }
-  .detail-hero-photo::after { background:linear-gradient(0deg,#fff8f0,transparent 22%); }
 }

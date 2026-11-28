@@ -15,6 +15,8 @@ import {
   type Section,
   type Site,
 } from "@/lib/content";
+import { homeHeroPhoto } from "@/lib/section-media";
+import HeroPhoto from "./hero-photo";
 import { homeHighlights } from "@/lib/seed-content";
 import { LanguageSwitch } from "./language-switch";
 import { loanOptions } from "@/lib/site";
@@ -238,7 +240,7 @@ const sectionViews: SectionViews = {
       </>
     );
     return (
-      <header className="border-b border-rule bg-white">
+      <header className="site-navbar sticky top-0 z-30 border-b border-rule bg-white">
         <div className="wrap flex min-h-[72px] items-center justify-between gap-5 lg:min-h-[82px]">
           <Logo photo={d.logo} />
           <nav
@@ -282,16 +284,17 @@ const sectionViews: SectionViews = {
           >
             {slides.map((item, index) => {
               const Title = index === initial ? "h1" : "h2";
+              const photo = homeHeroPhoto(item.photo);
               return (
                 <div
                   key={index}
                   inert={index !== initial}
                   className="relative min-w-0 flex-[0_0_100%] overflow-hidden"
                 >
-                  <div className="reference-hero-photo"><Picture photo={item.photo.image === "/images/hero.jpg" ? { image: "/images/reference-hero.webp", alt: "Tailor beside her sewing machine" } : item.photo} sizes="64vw" priority={index === initial} /></div>
+                  <HeroPhoto photo={photo} mobile={item.mobilePhoto} className="reference-hero-photo" priority={index === initial} />
                   <div className="reference-hero-tint absolute inset-0" style={{ opacity: item.opacity }} />
                   <div className="hero-wash absolute inset-0" />
-                  <div className="reference-hero-inner wrap relative flex flex-col">
+                  <div className="public-hero-inner reference-hero-inner wrap relative flex flex-col">
                     <div className="reference-hero-copy">
                       {item.intro.eyebrow && <p className="eyebrow">{item.intro.eyebrow}</p>}
                       <Title className="hero-heading">{item.intro.heading === "Big Dreams Begin With" ? <>Big Dreams Begin<br />With</> : item.intro.heading} <span>{item.intro.highlight}</span></Title>

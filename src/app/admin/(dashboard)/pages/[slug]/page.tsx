@@ -7,6 +7,10 @@ import { emptySeo } from "@/lib/seed-content";
 import type { PageRecord } from "@/lib/page-store";
 import PageEditor from "@/components/page-editor";
 import LinkDestinations from "@/components/link-destinations";
+import { businessDetails } from "@/lib/contact-details";
+import { formFields } from "@/lib/pages";
+import PublishedHeroImages from "@/components/published-hero-images";
+import { mobileHeroPhoto, pageHeroPhoto } from "@/lib/section-media";
 export default async function Edit({
   params,
 }: {
@@ -19,7 +23,7 @@ export default async function Edit({
     slug === "new"
       ? null
       : Page.findOne({ key: "page:" + slug })
-          .select("draft published.slug revision createdAt -_id")
+          .select("draft published.slug published.sections revision createdAt -_id")
           .lean<PageRecord & { createdAt?: Date }>(),
     Media.find({ deleting: { $ne: true } })
       .select("url alt -_id")
@@ -31,6 +35,8 @@ export default async function Edit({
       .lean<{ draft: { slug: string; title: string } }[]>(),
   ]);
   if (slug !== "new" && !record) notFound();
+  const contact = site.sections.find((section) => section.type === "contact");
+  const contactForm = formFields.safeParse(contact?.content);
   const history = record
     ? await AuditLog.find({
         target: "page:" + slug,
@@ -54,7 +60,17 @@ export default async function Edit({
         history={history.map(({ createdAt }) => createdAt.toISOString())}
         published={!!record?.published}
         media={[...media, ...bundledMedia]}
-        loans={site.records.loans.map(({ title, slug }) => ({ title, slug }))}
+        loans={site.records.loans}
+        contact={contact && { details: businessDetails(site), form: contactForm.data }}
+        publishedImages={<PublishedHeroImages images={(record?.published?.sections ?? [])
+          .filter((section) => section.visible && section.type === "hero")
+          .flatMap((section) => {
+            const photo = pageHeroPhoto(slug, section.photo);
+            const mobile = mobileHeroPhoto(photo, section.mobilePhoto);
+            return [{ key: section.id, label: section.label, photo }, ...(mobile
+              ? [{ key: section.id + "-mobile", label: section.label + " (mobile)", photo: mobile }]
+              : [])];
+          })} />}
       />
     </>
   );

@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Eye, ExternalLink, Plus, Save, Send } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { z } from "zod";
 import {
   DndContext,
   closestCenter,
@@ -31,21 +33,24 @@ import {
   type PageBlock,
 } from "@/lib/pages";
 import { editPage } from "@/app/admin/page-actions";
+import type { Content, Records } from "@/lib/content";
+import { pageHeroPhoto, serviceCardPhoto } from "@/lib/section-media";
+import { serviceCatalog } from "@/lib/service-catalog";
 const introOnly = pageBlock.pick({ intro: true });
 const fields = {
   custom: introOnly.extend({
     ...pageBlock.pick({ photo: true, body: true, cta: true, icon: true }).shape,
     fields: pageBlock.shape.fields.unwrap(),
   }),
-  hero: introOnly.extend(
-    pageBlock.pick({
-      photo: true,
-      cta: true,
-      icon: true,
-      cardTitle: true,
-      cardCopy: true,
-    }).shape,
-  ),
+  hero: z.object({
+    photo: pageBlock.shape.photo,
+    mobilePhoto: pageBlock.shape.mobilePhoto,
+    intro: pageBlock.shape.intro,
+    cta: pageBlock.shape.cta,
+    icon: pageBlock.shape.icon,
+    cardTitle: pageBlock.shape.cardTitle,
+    cardCopy: pageBlock.shape.cardCopy,
+  }),
   breadcrumb: pageBlock.pick({ cardTitle: true, cardCopy: true, cta: true }),
   services: introOnly.extend({
     ...pageBlock.pick({ note: true, items: true }).shape,
@@ -136,13 +141,17 @@ export default function PageEditor({
   published,
   media,
   loans,
+  contact,
+  publishedImages,
 }: {
   initial: EditablePage;
   initialRevision: number;
   history: string[];
   published: boolean;
   media: { url: string; alt: string }[];
-  loans: { slug: string; title: string }[];
+  loans: Records["loans"];
+  contact?: Pick<Content<"contact">, "details"> & { form?: PageBlock["form"] };
+  publishedImages: React.ReactNode;
 }) {
   const router = useRouter();
   const sensors = useSensors(
@@ -241,6 +250,7 @@ export default function PageEditor({
         {live ? "Published" : "Draft"}
         {dirty ? " · Unsaved changes" : ""}
       </p>
+      {live && publishedImages}
 
       <fieldset disabled={pending} className="grid gap-3">
         <div className="panel grid gap-3 p-3 sm:grid-cols-2">
@@ -340,6 +350,7 @@ export default function PageEditor({
                 section={{ ...block, type: labels[block.type] }}
                 index={index}
                 collapsible
+                initiallyExpanded={block.type === "hero"}
                 toggle={() => update(block.id, { visible: !block.visible })}
                 duplicate={doc.sections.length < 40 ? () => {
                   const copy = {
@@ -391,16 +402,25 @@ export default function PageEditor({
                   </details>
                   {(block.type === "contactForm" ||
                     block.type === "officeMap") && (
-                    <p className="text-xs text-muted">
-                      Edit phone, email, address and opening hours in{" "}
-                      <Link
-                        className="font-bold underline"
-                        href="/admin/cms?tab=contact"
-                      >
-                        Contact Details
+                    <div className="rounded-lg border border-rule p-3 text-sm">
+                      <Link className="font-bold underline" href="/admin/cms?tab=contact">
+                        Edit shared contact details
                       </Link>
-                      .
-                    </p>
+                      {contact && (
+                        <dl className="mt-2 grid gap-2 sm:grid-cols-2">
+                          {([
+                            ["Phone", contact.details.phone], ["Email", contact.details.email],
+                            ["Office address", contact.details.address], ["Office hours", contact.details.hours],
+                            ["Directions", contact.details.directions || contact.details.address],
+                          ] as const).map(([label, value]) => (
+                            <div key={label} className="min-w-0">
+                              <dt className="font-bold">{label}</dt>
+                              <dd className="break-words text-muted">{value || "Not set"}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      )}
+                    </div>
                   )}
                   {block.type === "services" ? (
                     <>
@@ -416,10 +436,30 @@ export default function PageEditor({
                       <div className="grid gap-3 rounded-lg border border-rule p-4">
                         <h3 className="font-bold">Loan cards</h3>
                         <p className="text-xs text-muted">
-                          Edit shared loan names, icons and buttons in Loan
-                          Services. Set the order and page-specific descriptions
-                          here.
+                          Set the order and page-specific descriptions here.{" "}
+                          <Link href="/admin/cms?tab=loans" className="font-bold underline">Edit shared loan cards</Link>.
                         </p>
+                        <details className="rounded-lg border border-rule p-3">
+                          <summary className="cursor-pointer font-bold">Cards shown in this section</summary>
+                          <ul className="mt-2 grid gap-3">
+                            {serviceCatalog(block, loans).map((loan, index) => {
+                              const photo = serviceCardPhoto(loan.slug, loan.photo);
+                              return (
+                                <li key={loan.slug + "-" + index} className="flex gap-3 text-sm">
+                                  {photo.image && (
+                                    <Image src={photo.image} alt={photo.alt} width={80} height={56}
+                                      className="h-14 w-20 shrink-0 rounded object-cover" unoptimized />
+                                  )}
+                                  <div className="min-w-0">
+                                    <p className="font-bold">{loan.title}</p>
+                                    <p>{loan.description}</p>
+                                    {photo.image && <p className="break-all text-xs text-muted">{photo.image}</p>}
+                                  </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </details>
                         {block.items.length === 0 && (
                           <p className="text-sm text-muted">
                             All published loans will appear in their shared
@@ -552,7 +592,14 @@ export default function PageEditor({
                     <Row
                       name={block.label}
                       schema={fields[block.type]}
-                      value={block}
+                      value={block.type === "hero"
+                        ? {
+                          ...block,
+                          photo: pageHeroPhoto(doc.slug, block.photo),
+                        }
+                        : block.type === "contactForm" && contact?.form
+                          ? { ...block, form: { ...contact.form, ...block.form } }
+                          : block}
                       media={media}
                       onChange={(v) =>
                         update(block.id, v as Partial<PageBlock>)

@@ -143,6 +143,7 @@ export const sections = {
       ordered.extend({
         intro: heading,
         photo: media,
+        mobilePhoto: media.optional(),
         opacity: z.number().min(0).max(1),
         cta: action,
         trust: list(tile),

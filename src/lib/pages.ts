@@ -85,6 +85,7 @@ export const pageBlock = z.object({
   cardTitle: z.string().max(240),
   cardCopy: z.string().max(4000),
   photo: media,
+  mobilePhoto: media.optional(),
   body: z.string().max(30000),
   form: formFields.optional(),
   contactCards: list(contactCard).optional(),
