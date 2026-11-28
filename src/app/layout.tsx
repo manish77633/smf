@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { publicLanguage } from "@/lib/public-language";
 const jakarta = localFont({
   src: "./jakarta.woff2",
   weight: "200 800",
@@ -15,9 +16,9 @@ const display = localFont({
   variable: "--public-display",
 });
 export const metadata: Metadata = { icons: ["/images/smf.svg"] };
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default async function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang={await publicLanguage()}>
       <body
         className={`${jakarta.className} ${jakarta.variable} ${display.variable}`}
       >

@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { unstable_cache } from "next/cache";
 import type { PipelineStage } from "mongoose";
 import { connect, Page, SiteSettings, Navigation, ContentModels } from "./db";
-import { draft, records } from "./seed-content";
+import { draft, records, homeHighlights } from "./seed-content";
 import type { Site, EntityKey, Records } from "./content";
 export const cacheTag = "published-home";
 const bundledSite = {
@@ -17,7 +17,12 @@ export async function getSite(): Promise<(Site & { bundled?: true }) | null> {
   const site = await (process.env.NODE_ENV === "development"
     ? readPublished()
     : published());
-  return site === "unseeded" ? bundledSite : site;
+  return site === "unseeded" ? bundledSite : site && { ...site, sections: site.sections.map(withHighlights) };
+}
+function withHighlights(section: Site["sections"][number]): Site["sections"][number] {
+  return section.type === "trust" && !section.content.homeHighlights
+    ? { ...section, content: { ...section.content, homeHighlights } }
+    : section;
 }
 async function readPublished(): Promise<Site | null | "unseeded"> {
   await connect();
@@ -73,7 +78,7 @@ export async function getDraft(): Promise<Site & { revision: number }> {
         return {
           ...page.draft,
           sections: page.draft.sections.map(
-            (item) => navigation.find((n) => n.id === item.id) ?? item,
+            (item) => withHighlights(navigation.find((n) => n.id === item.id) ?? item),
           ),
           settings,
           records: Object.fromEntries(

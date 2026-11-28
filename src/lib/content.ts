@@ -39,6 +39,7 @@ export const ordered = z.object({
   order: z.number().int().min(0).max(10000),
 });
 const tile = ordered.extend({ label: text, icon: text });
+export const detailField = tile.extend({ description: copy, cta: action.optional() });
 const navItem = ordered.extend(action.shape);
 const contact = z.object({
   email: z.union([z.literal(""), z.email()]),
@@ -115,6 +116,13 @@ export const entities = {
   faqs: ordered.extend({ question: text, answer: copy }),
 };
 export const sections = {
+  custom: heading.extend({
+    photo: media,
+    icon: text,
+    body: rich,
+    cta: action,
+    fields: list(detailField),
+  }),
   bar: z.object({ left: text, right: text, icon: text, cta: action }),
   header: z.object({
     logo: media,
@@ -135,13 +143,34 @@ export const sections = {
         opacity: z.number().min(0).max(1),
         cta: action,
         trust: list(tile),
-        advisor: heading,
+        advisor: heading.optional(),
         advisorCta: action,
-        disclaimer: copy,
+        disclaimer: copy.optional(),
       }),
     ),
   }),
-  trust: z.object({ caption: text, items: list(tile) }),
+  trust: z.object({
+    caption: text,
+    items: list(tile),
+    homeHighlights: z.object({
+      supportHeading: text,
+      hideSupport: flag.optional(),
+      cards: list(ordered.extend({ title: text, description: copy, icon: text, photo: media, cta: action })),
+      productsHeading: text,
+      hideProducts: flag.optional(),
+      products: list(ordered.extend({ slug })),
+      emiTitle: text,
+      hideEmi: flag.optional(),
+      emiIcon: text.optional(),
+      emiDescription: copy,
+      emiLabel: text,
+      emiLink: link,
+      emiPhoto: media,
+      reasonsHeading: text,
+      hideReasons: flag.optional(),
+      reasons: list(tile.extend({ description: copy })),
+    }).optional(),
+  }),
   loans: heading,
   about: heading.extend({
     photo: media,
@@ -238,7 +267,7 @@ export type Heading = z.infer<typeof heading>;
 export type Photo = z.infer<typeof media>;
 export type Section = {
   [K in SectionKey]: {
-    id: K;
+    id: K extends "custom" ? `custom-${string}` : K;
     type: K;
     label: string;
     visible: boolean;

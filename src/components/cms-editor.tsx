@@ -24,6 +24,7 @@ import {
   Eye,
   EyeOff,
   GripVertical,
+  Plus,
   Save,
   Send,
   Trash2,
@@ -38,12 +39,23 @@ import {
   sections,
   type EntityKey,
   type Section,
+  type SectionKey,
   type Site,
 } from "@/lib/content";
+import { draft as bundledDraft } from "@/lib/seed-content";
 const RichEditor = dynamic(() => import("./rich-editor"), {
   ssr: false,
   loading: () => <p className="text-sm">Loading editor…</p>,
 });
+const homepageSectionEditors = {
+  ...sections,
+  footer: sections.footer.omit({ details: true }),
+  header: sections.header.omit({ outline: true }),
+  hero: sections.hero.extend({
+    slides: z.array(sections.hero.shape.slides.element.omit({ advisor: true, disclaimer: true })),
+  }),
+  trust: sections.trust.pick({ homeHighlights: true }),
+};
 import MediaPicker, { type Asset } from "./media-picker";
 import Link from "next/link";
 import EditorIconButton from "./editor-icon-button";
@@ -74,6 +86,7 @@ const pretty = (key: string) =>
     .replace(/^Og /, "Open Graph ");
 import IconPicker from "./icon-picker";
 function defaults(schema: z.ZodType, key = ""): unknown {
+  if (schema instanceof z.ZodOptional) return undefined;
   if (schema instanceof z.ZodObject)
     return Object.fromEntries(
       Object.entries(schema.shape).map(([k, v]) => [
@@ -83,13 +96,15 @@ function defaults(schema: z.ZodType, key = ""): unknown {
     );
   if (schema instanceof z.ZodArray) return [];
   if (schema instanceof z.ZodEnum) return schema.options[0];
-  if (schema instanceof z.ZodBoolean) return false;
+  if (schema instanceof z.ZodBoolean) return key === "visible";
   if (schema instanceof z.ZodNumber)
     return key === "rating" || key === "minutes"
       ? 1
       : key === "opacity"
         ? 0.78
         : 0;
+  if (key === "title" || key === "label") return "New item";
+  if (key === "icon") return "Check";
   return "";
 }
 export function Row({
@@ -215,6 +230,17 @@ export function Row({
       element = schema.element as z.ZodType;
     const change = (i: number, v: unknown) =>
       onChange(values.map((a, j) => (i === j ? v : a)));
+    const append = (item: unknown) => {
+      const highestOrder = Math.max(-1, ...values.map(
+        (entry) => Number((entry as { order?: number } | undefined)?.order ?? -1),
+      ));
+      onChange([
+        ...values,
+        item && typeof item === "object" && "order" in item
+          ? { ...item, order: highestOrder + 1 }
+          : item,
+      ]);
+    };
     const move = (i: number, j: number) => {
       const reordered = arrayMove(values, i, j);
       onChange(
@@ -253,6 +279,16 @@ export function Row({
                   media={media}
                 />
                 <div className="flex flex-wrap justify-end gap-1">
+                  {row && !row.slug && !row.from && (
+                    <button
+                      type="button"
+                      className="rounded-md border border-rule px-2 text-xs font-bold disabled:opacity-40"
+                      disabled={values.length >= 40}
+                      onClick={() => append(structuredClone(item))}
+                    >
+                      {name === "fields" ? "Duplicate field" : "Duplicate item"}
+                    </button>
+                  )}
                   <EditorIconButton
                     icon={ArrowUp}
                     label={"Move item " + (i + 1) + " up"}
@@ -282,17 +318,10 @@ export function Row({
         <button
           type="button"
           className="justify-self-start rounded-md border border-rule bg-white px-3 py-2 text-sm font-bold"
-          onClick={() => {
-            const item = defaults(element);
-            onChange([
-              ...values,
-              item && typeof item === "object" && "order" in item
-                ? { ...item, order: values.length }
-                : item,
-            ]);
-          }}
+          disabled={values.length >= 40}
+          onClick={() => append(defaults(element))}
         >
-          Add item
+          {name === "fields" ? "Add field" : "Add item"}
         </button>
       </div>
     );
@@ -709,6 +738,7 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
   const [doc, set] = useState(initial),
     [saved, setSaved] = useState(initial);
   const [selection, setSelection] = useState<string | null>(null);
+  const [sectionKind, setSectionKind] = useState<SectionKey>("custom");
   const [pending, start] = useTransition();
   const [filter, setFilter] = useState("");
   const active = selection || tab;
@@ -747,6 +777,54 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
     };
   }, [dirty]);
   const section = doc.sections.find((s) => s.id === active);
+  const missingSections = bundledDraft.sections.filter(
+    (template) => !doc.sections.some((item) => item.id === template.id),
+  );
+  function removeSection(id: Section["id"]) {
+    if (!confirm("Delete this section from the draft?")) return;
+    set((d) => ({ ...d, sections: d.sections.filter((item) => item.id !== id) }));
+    setSelection("overview");
+  }
+  function addSection() {
+    const template = missingSections.find((item) => item.id === sectionKind);
+    if (!template && sectionKind !== "custom") return;
+    const item: Section = template ? structuredClone(template) : {
+      id: `custom-${crypto.randomUUID()}`,
+      type: "custom",
+      label: "New content section",
+      visible: true,
+      content: {
+        eyebrow: "",
+        heading: "New content section",
+        highlight: "",
+        description: "Introduce this section in a sentence.",
+        icon: "Info",
+        photo: { image: "", alt: "" },
+        body: "",
+        cta: { label: "Contact us", url: "/contact", enquiry: false },
+        fields: [{
+          label: "Key detail",
+          description: "Describe what visitors should know.",
+          icon: "Check",
+          cta: { label: "", url: "", enquiry: false },
+          order: 0,
+          visible: true,
+        }],
+      },
+    };
+    set((d) => {
+      const sections = [...d.sections];
+      const before = item.type === "bar"
+        ? 0
+        : item.type === "header"
+          ? sections.findIndex((section) => section.type !== "bar")
+          : sections.findIndex((section) => section.type === "footer");
+      sections.splice(before < 0 ? sections.length : before, 0, item);
+      return { ...d, sections };
+    });
+    setSectionKind("custom");
+    setSelection(item.id);
+  }
   const mainSections = doc.sections.filter(
     (s) => !["header", "bar", "footer"].includes(s.type),
   );
@@ -808,11 +886,7 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
           </p>
         )}
         <Row
-          schema={
-            section.type === "footer"
-              ? sections.footer.omit({ details: true })
-              : sections[section.type]
-          }
+          schema={homepageSectionEditors[section.type]}
           value={
             section.type === "header"
               ? { loanMenu: true, loanMenuUrl: "/services", ...section.content }
@@ -915,6 +989,12 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
                 All sections
               </button>
               <EditorIconButton
+                icon={Trash2}
+                label={"Delete " + section.label}
+                tone="danger"
+                onClick={() => removeSection(section.id)}
+              />
+              <EditorIconButton
                 icon={section.visible ? Eye : EyeOff}
                 aria-pressed={section.visible}
                 label={"Show " + section.label + " on website"}
@@ -940,6 +1020,7 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
                       editSection("bar", { visible: !topBar.visible })
                     }
                   />
+                  <EditorIconButton icon={Trash2} label="Delete top information bar" tone="danger" onClick={() => removeSection("bar")} />
                 </div>
                 {editorBody(topBar)}
               </div>
@@ -1095,6 +1176,18 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             />
+            <div className="panel flex flex-wrap items-end gap-3 p-4">
+              <label className="grid gap-1 text-sm font-bold">
+                Section template
+                <select className="field" value={sectionKind} onChange={(e) => setSectionKind(e.target.value as SectionKey)}>
+                  <option value="custom">Custom content</option>
+                  {missingSections.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+                </select>
+              </label>
+              <button type="button" className="button min-h-0 py-2 disabled:opacity-40" disabled={doc.sections.length >= 40} onClick={addSection}>
+                <Plus size={16} aria-hidden /> Add section
+              </button>
+            </div>
             <DndContext
               id="homepage-order"
               sensors={sensors}
@@ -1125,6 +1218,7 @@ export default function Editor({ initial, tab, media, loanPageSlugs }: Props) {
                         key={s.id}
                         section={s}
                         index={mainSections.indexOf(s)}
+                        remove={() => removeSection(s.id)}
                         moveUp={
                           mainSections[0]?.id === s.id
                             ? undefined

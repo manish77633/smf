@@ -32,7 +32,7 @@ const sectionType = z.enum(
   Object.keys(sections) as [SectionKey, ...SectionKey[]],
 );
 const sectionEnvelope = z.object({
-  id: sectionType,
+  id: z.string().max(80),
   type: sectionType,
   label: z.string().min(1).max(100),
   visible: z.boolean(),
@@ -41,7 +41,7 @@ const sectionEnvelope = z.object({
 const request = z.object({
   page: pageFields,
   settings: globals,
-  sections: z.array(sectionEnvelope).length(Object.keys(sections).length),
+  sections: z.array(sectionEnvelope).max(40),
   records: z.record(z.string(), z.array(z.unknown()).max(200)),
   revision: z.number().int().min(0),
 });
@@ -49,9 +49,13 @@ export function validateSite(doc: unknown) {
   const parsed = request.parse(doc);
   if (
     new Set(parsed.sections.map((s) => s.id)).size !== parsed.sections.length ||
-    parsed.sections.some((s) => s.type !== s.id)
+    parsed.sections.some((s) =>
+      s.type === "custom"
+        ? !z.uuid().safeParse(s.id.replace(/^custom-/, "")).success || !s.id.startsWith("custom-")
+        : s.type !== s.id,
+    )
   )
-    throw new Error("Each section must appear exactly once.");
+    throw new Error("Each homepage section must have a valid, unique ID.");
   const items = parsed.sections.map((s) => {
     const content = sections[s.type].parse(s.content);
     if ("body" in content && typeof content.body === "string")

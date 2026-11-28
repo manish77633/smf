@@ -17,19 +17,46 @@ import { sortVisible, type Site, type Action } from "@/lib/content";
 import { loanOptions } from "@/lib/site";
 import { cleanRich } from "@/lib/rich";
 import type { EditablePage, PageBlock } from "@/lib/pages";
+import "./services-page.css";
+
+const servicePhotos: Record<string, string> = {
+  "gold-loan": "gold-loan.jpg",
+  "business-loan": "reference-shop.webp",
+  "construction-loan": "construction-loan.jpg",
+  "loan-against-property": "home.jpg",
+  "group-loan": "reference-sewing.webp",
+  "personal-loan": "reference-family.webp",
+};
 
 function Block({
   block: b,
   site,
   primary,
+  pageSlug,
 }: {
   block: PageBlock;
   site: Site;
   primary: boolean;
+  pageSlug: string;
 }) {
   const d = b.intro,
     items = sortVisible(b.items);
   const cta = <LinkButton action={b.cta} />;
+  if (b.type === "custom")
+    return renderSection({
+      id: `custom-${b.id}`,
+      type: "custom",
+      visible: b.visible,
+      label: b.label,
+      content: {
+        ...b.intro,
+        icon: b.icon,
+        body: b.body,
+        photo: b.photo,
+        cta: b.cta,
+        fields: b.fields ?? [],
+      },
+    }, site, false);
   if (b.type === "breadcrumb")
     return (
       <nav aria-label="Breadcrumb" className="border-b border-rule">
@@ -54,32 +81,43 @@ function Block({
     );
   if (b.type === "hero") {
     const Title = primary ? "h1" : "h2";
+    const images: Record<string, string> = {
+      services: "reference-hero.webp",
+      "business-loan": "reference-shop.webp",
+      "personal-loan": "reference-family.webp",
+      "construction-loan": "construction-loan.jpg",
+      "loan-against-property": "home.jpg",
+      "gold-loan": "gold-loan.jpg",
+      "group-loan": "reference-sewing.webp",
+      contact: "team.jpg",
+    };
+    const image = images[pageSlug];
+    const photo = b.photo.image || !image ? b.photo : { image: "/images/" + image, alt: "" };
     return (
-      <section className="public-hero relative isolate overflow-hidden bg-navy text-white">
-        {b.photo.image && (
-          <>
-            <Picture photo={b.photo} sizes="100vw" priority={primary} />
-            <div className="hero-wash absolute inset-0 opacity-90" />
-          </>
+      <section className="public-hero detail-hero relative isolate overflow-hidden">
+        {photo.image && (
+          <div className="detail-hero-photo">
+            <Picture photo={photo} sizes="(min-width: 768px) 55vw, 100vw" priority={primary} />
+          </div>
         )}
-        <div className="wrap relative grid items-center gap-9 py-[clamp(72px,8vw,120px)] lg:grid-cols-[1.55fr_1fr] lg:gap-[10%]">
+        <div className="wrap detail-hero-inner relative py-[clamp(48px,5vw,76px)]">
           <div>
             <p className="eyebrow text-[#ff747b]">{d.eyebrow}</p>
             <Title className="hero-heading max-w-[760px]">
               {d.heading} <span>{d.highlight}</span>
             </Title>
-            <p className="mt-5 max-w-[670px] text-sm leading-relaxed text-blue-50 md:text-lg">
+            <p className="mt-5 max-w-[52ch] text-sm leading-relaxed text-ink md:text-lg">
               {d.description}
             </p>
             {b.cta.label && <div className="mt-6">{cta}</div>}
           </div>
           {(b.cardTitle || b.cardCopy) && (
-            <aside className="rounded-2xl border border-white/20 bg-white/8 p-6">
+            <aside className="mt-6 max-w-md rounded-xl border border-rule bg-white/80 p-4">
               <span className="mb-4 grid size-10 place-items-center rounded-xl bg-brand">
                 <Icon name={b.icon} size={18} />
               </span>
               <h2 className="font-extrabold">{b.cardTitle}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-blue-50">
+              <p className="mt-2 text-sm leading-relaxed text-ink">
                 {b.cardCopy}
               </p>
             </aside>
@@ -199,7 +237,7 @@ function Block({
         ? [...selected, ...loans.filter((loan) => !configured.has(loan.slug))]
         : selected;
     return (
-      <section className="band" id="loan-categories">
+      <section className="band service-catalog" id="loan-categories">
         <div className="wrap">
           <div className="mb-5 grid items-end gap-5 lg:grid-cols-[1fr_25%]">
             <Intro data={d} />
@@ -209,37 +247,46 @@ function Block({
               </p>
             )}
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
-            {rows.map((loan, i) => (
-              <article
-                key={loan.slug + "-" + i}
-                className="panel lift-card flex flex-col p-6 lg:p-7"
-              >
-                {loan.photo?.image && (
-                  <div className="card-photo relative mb-4 aspect-video overflow-hidden rounded-lg bg-tint">
-                    <Picture
-                      photo={loan.photo}
-                      sizes="(min-width: 1024px) 30vw, 90vw"
-                    />
-                  </div>
-                )}
-                <span
-                  className={
-                    "mb-5 grid size-12 place-items-center rounded-xl " +
-                    (loan.red ? "bg-softred text-brand" : "bg-softblue")
-                  }
+          <div className="service-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+            {rows.map((loan, i) => {
+              const fallback = servicePhotos[loan.slug];
+              const photo = loan.photo?.image ? loan.photo : fallback ? {
+                image: "/images/" + fallback,
+                alt: "",
+              } : null;
+              return (
+                <article
+                  key={loan.slug + "-" + i}
+                  className="service-product panel lift-card flex flex-col overflow-hidden"
                 >
-                  <Icon name={loan.icon} />
-                </span>
-                <h3 className="text-lg font-extrabold">{loan.title}</h3>
-                <p className="mt-2 mb-6 text-sm leading-relaxed text-muted">
-                  {loan.description}
-                </p>
-                <div className="mt-auto">
-                  <LinkButton action={loanCardAction(loan)} kind="text" />
-                </div>
-              </article>
-            ))}
+                  {photo && (
+                    <div className="service-product-photo card-photo relative aspect-video overflow-hidden bg-tint">
+                      <Picture
+                        photo={photo}
+                        sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
+                      />
+                    </div>
+                  )}
+                  <div className="service-product-content flex flex-1 flex-col p-6">
+                    <span
+                      className={
+                        "service-product-icon mb-4 grid size-12 place-items-center rounded-xl " +
+                        (loan.red ? "bg-softred text-brand" : "bg-softblue")
+                      }
+                    >
+                      <Icon name={loan.icon} />
+                    </span>
+                    <h3 className="text-lg font-extrabold">{loan.title}</h3>
+                    <p className="mt-2 mb-6 text-sm leading-relaxed text-muted">
+                      {loan.description}
+                    </p>
+                    <div className="mt-auto">
+                      <LinkButton action={loanCardAction(loan)} kind="text" />
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -267,6 +314,7 @@ function Block({
                   <p className="mt-1 text-xs leading-relaxed text-blue-100">
                     {item.description}
                   </p>
+                  {item.cta?.label && <div className="mt-2"><LinkButton action={item.cta} kind="plain" /></div>}
                 </div>
               </article>
             ))}
@@ -325,6 +373,7 @@ function Block({
                 <p className="mt-2 text-sm leading-relaxed text-muted">
                   {item.description}
                 </p>
+                {item.cta?.label && <div className="mt-3"><LinkButton action={item.cta} kind="text" /></div>}
               </article>
             ))}
           </div>
@@ -351,6 +400,7 @@ function Block({
                       {item.description}
                     </p>
                   )}
+                  {item.cta?.label && <div className="mt-2"><LinkButton action={item.cta} kind="text" /></div>}
                 </div>
               </li>
             ))}
@@ -407,7 +457,7 @@ function Block({
                     (b.dark ? "bg-brand text-white" : "bg-softred text-brand")
                   }
                 >
-                  {String(i + 1).padStart(2, "0")}
+                  {item.icon ? <Icon name={item.icon} size={16} /> : i + 1}
                 </span>
                 <h3 className="font-extrabold">{item.title}</h3>
                 <p
@@ -418,6 +468,11 @@ function Block({
                 >
                   {item.description}
                 </p>
+                {item.cta?.label && (
+                  <div className="mt-3">
+                    <LinkButton action={item.cta} kind={b.dark ? "plain" : "text"} />
+                  </div>
+                )}
               </article>
             ))}
           </div>
@@ -447,7 +502,10 @@ function Block({
                 className="group border-b border-rule"
               >
                 <summary className="flex list-none items-center justify-between gap-3 py-5 text-sm font-extrabold">
-                  {item.title}
+                  <span className="flex items-center gap-2">
+                    {item.icon && <Icon name={item.icon} size={16} />}
+                    {item.title}
+                  </span>
                   <span
                     aria-hidden
                     className="grid size-7 shrink-0 place-items-center rounded-full bg-softblue text-brand"
@@ -459,6 +517,7 @@ function Block({
                 <p className="pb-5 pr-4 text-sm leading-relaxed text-muted">
                   {item.description}
                 </p>
+                {item.cta?.label && <div className="pb-4"><LinkButton action={item.cta} kind="text" /></div>}
               </details>
             ))}
           </div>
@@ -551,14 +610,14 @@ export function ContentPage({
             {renderSection(s, site, false)}
           </div>
         ))}
-      <main id="main" className="public-site">
+      <main id="main" className={page.slug === "services" ? "public-site services-page" : "public-site"}>
         {!hero && (
           <div className="public-hero bg-navy py-16 text-white">
             <h1 className="wrap hero-heading">{page.title}</h1>
           </div>
         )}
         {sections.map((s) => (
-          <Block key={s.id} block={s} site={site} primary={s === hero} />
+          <Block key={s.id} block={s} site={site} primary={s === hero} pageSlug={page.slug} />
         ))}
       </main>
       {[

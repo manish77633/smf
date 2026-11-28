@@ -54,11 +54,15 @@ export function LinkButton({
   kind = "primary",
   arrow = true,
   navigation = false,
+  className = "",
+  children,
 }: {
   action: Action;
   kind?: "primary" | "outline" | "white" | "text" | "plain";
   arrow?: boolean;
   navigation?: boolean;
+  className?: string;
+  children?: ReactNode;
 }) {
   const pathname = usePathname();
   const url =
@@ -90,11 +94,11 @@ export function LinkButton({
   );
   return (
     <SiteLink
-      className={style + (current || parent ? " text-brand" : "")}
+      className={style + (current || parent ? " text-brand" : "") + " " + className}
       href={url}
       aria-current={current ? "page" : undefined}
     >
-      {label}
+      {children ?? label}
     </SiteLink>
   );
 }
@@ -402,7 +406,7 @@ export function Carousel({
       </div>
       {hero ? (
         count > 1 && (
-          <div className="wrap pointer-events-none absolute inset-x-0 bottom-4 flex items-end justify-between text-white">
+          <div className="wrap hero-carousel-controls pointer-events-none absolute inset-x-0 bottom-4 flex items-end justify-between text-white">
             <div className="pointer-events-auto flex items-center gap-1">
               {Array.from({ length: count }, (_, i) => (
                 <button

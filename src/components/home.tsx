@@ -15,6 +15,8 @@ import {
   type Section,
   type Site,
 } from "@/lib/content";
+import { homeHighlights } from "@/lib/seed-content";
+import { LanguageSwitch } from "./language-switch";
 import { loanOptions } from "@/lib/site";
 import { cleanRich } from "@/lib/rich";
 import {
@@ -150,6 +152,39 @@ type SectionViews = {
   ) => React.ReactNode;
 };
 const sectionViews: SectionViews = {
+  custom({ id, content }) {
+    return (
+      <section id={id} className="band border-t border-rule bg-[#fff9f3]">
+        <div className="wrap">
+          <div className={content.photo.image ? "grid items-center gap-8 lg:grid-cols-2" : "max-w-3xl"}>
+            <div>
+              {content.icon && <span className="mb-4 inline-flex rounded-xl bg-softred p-3 text-brand"><Icon name={content.icon} /></span>}
+              <Intro data={content} />
+              {content.body && <div className="rich copy mt-4" dangerouslySetInnerHTML={{ __html: cleanRich(content.body) }} />}
+              {content.cta.label && <div className="mt-5"><LinkButton action={content.cta} /></div>}
+            </div>
+            {content.photo.image && (
+              <div className="relative aspect-video overflow-hidden rounded-2xl">
+                <Picture photo={content.photo} sizes="(min-width:1024px) 42vw, 90vw" />
+              </div>
+            )}
+          </div>
+          {sortVisible(content.fields).length > 0 && (
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {sortVisible(content.fields).map((field, index) => (
+                <article key={index} className="panel p-5">
+                  {field.icon && <span className="mb-3 inline-flex text-brand"><Icon name={field.icon} /></span>}
+                  {field.label && <h3 className="font-extrabold">{field.label}</h3>}
+                  {field.description && <p className="copy mt-2">{field.description}</p>}
+                  {field.cta?.label && <div className="mt-3"><LinkButton action={field.cta} kind="text" /></div>}
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  },
   bar(s) {
     const d = s.content;
     return (
@@ -198,7 +233,7 @@ const sectionViews: SectionViews = {
       );
     const buttons = (
       <>
-        <LinkButton action={d.outline} kind="outline" arrow={false} />
+        <LanguageSwitch />
         <LinkButton action={d.primary} />
       </>
     );
@@ -236,7 +271,7 @@ const sectionViews: SectionViews = {
       slides.length > 0 && (
         <section
           aria-label="Financing options"
-          className="public-hero bg-navy text-white"
+          className="public-hero reference-hero text-navy"
         >
           <Carousel
             count={slides.length}
@@ -253,54 +288,21 @@ const sectionViews: SectionViews = {
                   inert={index !== initial}
                   className="relative min-w-0 flex-[0_0_100%] overflow-hidden"
                 >
-                  <Picture
-                    photo={item.photo}
-                    sizes="100vw"
-                    priority={index === initial}
-                  />
-                  <div
-                    className="hero-wash absolute inset-0"
-                    style={{ opacity: item.opacity }}
-                  />
-                  <div className="wrap relative grid min-h-[clamp(530px,48vw,700px)] items-center gap-9 pt-16 pb-24 lg:grid-cols-[1.6fr_1fr] lg:gap-[7%] lg:py-20">
-                    <div className="max-w-[690px]">
-                      <p className="eyebrow text-[#ff757d]">
-                        {item.intro.eyebrow}
-                      </p>
-                      <Title className="hero-heading">
-                        {item.intro.heading} <span>{item.intro.highlight}</span>
-                      </Title>
-                      <p className="mt-5 max-w-[570px] text-[15px] leading-relaxed text-blue-50 md:text-lg">
-                        {item.intro.description}
-                      </p>
-                      <div className="mt-7">
+                  <div className="reference-hero-photo"><Picture photo={item.photo.image === "/images/hero.jpg" ? { image: "/images/reference-hero.webp", alt: "Tailor beside her sewing machine" } : item.photo} sizes="64vw" priority={index === initial} /></div>
+                  <div className="absolute inset-0 bg-[#fff9f0]" style={{ opacity: item.opacity }} />
+                  <div className="hero-wash absolute inset-0" />
+                  <div className="reference-hero-inner wrap relative flex min-h-[390px] items-center py-10 md:min-h-[470px] lg:min-h-[clamp(370px,25vw,520px)]">
+                    <div className="max-w-[510px]">
+                      {item.intro.eyebrow && <p className="eyebrow">{item.intro.eyebrow}</p>}
+                      <Title className="hero-heading">{item.intro.heading === "Big Dreams Begin With" ? <>Big Dreams Begin<br />With</> : item.intro.heading} <span>{item.intro.highlight}</span></Title>
+                      <p className="mt-5 max-w-[430px] text-[15px] leading-relaxed md:text-lg">{item.intro.description}</p>
+                      <div className="mt-6 flex flex-wrap gap-3">
                         <LinkButton action={item.cta} />
+                        <LinkButton action={item.advisorCta} kind="outline" />
                       </div>
-                      <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-bold">
-                        {sortVisible(item.trust).map((t, i) => (
-                          <li key={i} className="flex items-center gap-2">
-                            <span className={check}>
-                              <Icon name={t.icon} size={13} />
-                            </span>
-                            {t.label}
-                          </li>
-                        ))}
+                      <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[12px] font-bold">
+                        {sortVisible(item.trust).slice(0, 3).map((t, i) => <li key={i} className="flex items-center gap-2"><Icon name={t.icon} size={17} />{t.label}</li>)}
                       </ul>
-                    </div>
-                    <div className="rounded-2xl bg-white p-6 text-navy shadow-[0_15px_45px_#03132830] md:p-8 xl:p-9">
-                      <p className="eyebrow mb-3">{item.advisor.eyebrow}</p>
-                      <h2 className="text-xl font-extrabold tracking-tight xl:text-2xl">
-                        {item.advisor.heading} {item.advisor.highlight}
-                      </h2>
-                      <p className="mt-2 text-sm leading-relaxed text-muted">
-                        {item.advisor.description}
-                      </p>
-                      <div className="my-5">
-                        <LinkButton action={item.advisorCta} />
-                      </div>
-                      <p className="text-xs leading-relaxed text-muted">
-                        {item.disclaimer}
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -311,8 +313,93 @@ const sectionViews: SectionViews = {
       )
     );
   },
-  trust(s) {
+  trust(s, site) {
     const d = s.content;
+    if (site && s.id === "trust") {
+      const loans = sortVisible(site.records.loans);
+      const design = d.homeHighlights ?? homeHighlights;
+      const featured = sortVisible(design.cards);
+      const points = sortVisible(design.reasons);
+      return (
+        <div className="reference-below-hero">
+          {!design.hideSupport && (
+            <section className="need-band">
+              <div className="need-wrap">
+                <h2>{design.supportHeading}<span className="accent-stroke" /></h2>
+                <div className="need-grid">
+                  {featured.map((item, index) => (
+                    <article className="need-card" key={index}>
+                      {item.photo.image && (
+                        <div className="need-image">
+                          <Picture photo={item.photo} sizes="(min-width: 1024px) 18vw, 50vw" />
+                          {item.icon && <span className="need-icon"><Icon name={item.icon} size={23} /></span>}
+                        </div>
+                      )}
+                      <div className="need-copy">
+                        <h3>{item.title}</h3>
+                        <p>{item.description}</p>
+                        <LinkButton action={item.cta} kind="text" />
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+          {(!design.hideProducts || !design.hideEmi) && (
+            <section className="product-band">
+              <div className={"product-wrap" + (design.hideProducts ? " product-wrap-emi-only" : design.hideEmi ? " product-wrap-no-emi" : "")}>
+                {!design.hideProducts && (
+                  <>
+                    <h2>{design.productsHeading}<span className="accent-stroke" /></h2>
+                    <div className="product-grid">
+                      {sortVisible(design.products).map(({ slug }, index) => {
+                        const loan = loans.find((item) => item.slug === slug);
+                        if (!loan) return null;
+                        const action = loanCardAction(loan);
+                        return (
+                          <LinkButton key={index} action={{ ...action, label: loan.title }} kind="plain" className="product-tile">
+                            <Icon name={loan.icon} size={27} />
+                            <strong>{loan.title}</strong>
+                            <span aria-hidden="true">→</span>
+                          </LinkButton>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+                {!design.hideEmi && (
+                  <div className="emi-card">
+                    <Icon name={design.emiIcon ?? "Calculator"} size={46} />
+                    <div>
+                      <h3>{design.emiTitle}</h3>
+                      <p>{design.emiDescription}</p>
+                      {design.emiLink && design.emiLabel && <Link href={design.emiLink} className="emi-link">{design.emiLabel} →</Link>}
+                    </div>
+                    {design.emiPhoto.image && <Image src={design.emiPhoto.image} alt={design.emiPhoto.alt} width={156} height={110} className="emi-photo" />}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+          {!design.hideReasons && (
+            <section className="why-band">
+              <div className="why-wrap">
+                <h2>{design.reasonsHeading}<span className="accent-stroke" /></h2>
+                <div className="why-grid">
+                  {points.map((item, index) => (
+                    <div className="why-item" key={index}>
+                      {item.icon && <Icon name={item.icon} size={34} />}
+                      <span><strong>{item.label}</strong><small>{item.description}</small></span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+        </div>
+      );
+    }
     return (
       <div className="border-b border-rule bg-white py-4">
         <div className="wrap flex flex-col items-start gap-x-5 gap-y-3 text-[12px] sm:flex-row sm:flex-wrap sm:items-center lg:justify-between">
@@ -922,12 +1009,10 @@ export function Home({
   const stories = display.some((s) => s.type === "testimonials");
   const storyLink = <T extends { url: string }>(item: T): T =>
     item.url === "#stories" && !stories ? { ...item, url: "#about" } : item;
-  const firstContent = display.findIndex(
-    (s) => s.type !== "bar" && s.type !== "header",
-  );
-  const lastContent =
-    display.at(-1)?.type === "footer" ? display.length - 1 : display.length;
-  const scoped = display.map((section) => (
+  const header = display.filter((s) => s.type === "bar" || s.type === "header");
+  const content = display.filter((s) => s.type !== "bar" && s.type !== "header" && s.type !== "footer");
+  const footer = display.filter((s) => s.type === "footer");
+  const render = (section: Section) => (
     <div key={section.id} className="contents" data-section={section.type}>
       {renderSection(
         section.type === "header"
@@ -954,7 +1039,7 @@ export function Home({
         preview,
       )}
     </div>
-  ));
+  );
   return (
     <div id="home" className="public-site">
       <a
@@ -963,14 +1048,14 @@ export function Home({
       >
         Skip to content
       </a>
-      {scoped.slice(0, Math.max(0, firstContent))}
+      {header.map(render)}
       <main id="main">
         {!display.some(
           (s) => s.type === "hero" && s.content.slides.some((i) => i.visible),
         ) && <h1 className="sr-only">{site.settings.websiteName}</h1>}
-        {scoped.slice(Math.max(0, firstContent), lastContent)}
+        {content.map(render)}
       </main>
-      {scoped.slice(lastContent)}
+      {footer.map(render)}
       <FloatingActions
         whatsapp={whatsapp}
         backToTop={

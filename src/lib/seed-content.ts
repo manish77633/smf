@@ -28,7 +28,11 @@ const photo = (file: string, alt: string) => ({
   alt,
 });
 const logo = photo("smf.svg", "Shree Mahavir Fincorp");
-const details = { email: "", phone: "", address: "" };
+const details = {
+  email: "shreemahavirfincorp@gmail.com",
+  phone: "",
+  address: "2nd Floor, Shop No. 3, New Light Colony, Gopalpura Bypass, Tonk Road, Jaipur, Rajasthan",
+};
 const ordered = (order: number, visible = true) => ({ visible, order });
 const tiles = (items: string[][]) =>
   items.map(([label, icon], order) => ({ label, icon, ...ordered(order) }));
@@ -37,6 +41,31 @@ const nav = (items: string[][]) =>
     ...go(label, url),
     ...ordered(order),
   }));
+export const homeHighlights: NonNullable<Content<"trust">["homeHighlights"]> = {
+  supportHeading: "What do you need financial support for?",
+  cards: [
+    ["shop", "Store", "Grow Your Business", "Need funds to expand your shop or purchase inventory?", "Explore Business Loan", "/business-loan"],
+    ["sewing", "Scissors", "Start Something New", "Need financial support for your entrepreneurial journey?", "Explore Loan Options", "/services"],
+    ["dairy", "Milk", "Expand Your Dairy", "Looking to purchase cattle or grow your dairy business?", "Explore Loan Options", "/services"],
+    ["family", "UsersRound", "Meet Personal Needs", "Need financial support for education, healthcare or other important expenses?", "Explore Personal Loan", "/personal-loan"],
+  ].map(([file, icon, title, description, label, url], order) => ({
+    ...ordered(order), icon, title, description, photo: photo("reference-" + file + ".webp", ""), cta: go(label, url),
+  })),
+  productsHeading: "Our Loan Products",
+  products: ["business-loan", "personal-loan", "loan-against-property", "gold-loan"].map((slug, order) => ({ slug, ...ordered(order) })),
+  emiTitle: "Calculate Your EMI",
+  emiDescription: "Check your estimated EMI in seconds.",
+  emiLabel: "EMI Calculator",
+  emiLink: "/emi-calculator",
+  emiPhoto: photo("reference-emi.webp", ""),
+  reasonsHeading: "Why Choose SMF?",
+  reasons: [
+    ["Customer-Centric Approach", "UsersRound", "Solutions based on your real needs."],
+    ["Simple Process", "FileText", "Clear documentation and easy application."],
+    ["Personal Guidance", "Headset", "Our team supports you at every step."],
+    ["Local Understanding", "MapPin", "We understand the financial needs of our communities in Rajasthan."],
+  ].map(([label, icon, description], order) => ({ ...ordered(order), label, icon, description })),
+};
 const section = <K extends SectionKey>(
   type: K,
   label: string,
@@ -227,11 +256,11 @@ export const records: Records = {
 };
 const slides = [
   [
-    "FOR YOUR NEXT STEP",
-    "Finance for what’s",
-    "next.",
-    "Explore options for your personal, property and business goals.",
-    "Explore Loans",
+    "",
+    "Big Dreams Begin With",
+    "Small Steps.",
+    "Financial solutions to help you grow your business, start something new or meet personal needs.",
+    "Explore Our Loans",
   ],
   [
     "FOR YOUR AMBITION",
@@ -250,22 +279,23 @@ const slides = [
 ].map(([label, title, highlight, copy, cta], order) => ({
   ...ordered(order),
   intro: h(label, title, copy, highlight),
-  photo: photo("hero.jpg", "Colleagues reviewing financial plans"),
-  opacity: 0.78,
+  photo: photo("reference-hero.webp", "Tailor beside her sewing machine"),
+  opacity: order === 0 ? 0.08 : 0.22,
   cta:
-    order === 1
+      order === 1
       ? ask(cta, "#business-loan")
       : go(cta, order === 0 ? "#loans" : "#contact"),
   trust: tiles([
-    ["Guidance at every step", "Check"],
-    ["Clear next steps", "Check"],
+    ["Simple Process", "Handshake"],
+    ["Quick Support", "Zap"],
+    ["Trusted & Transparent", "ShieldCheck"],
   ]),
   advisor: h(
-    "START A CONVERSATION",
-    "Your plans deserve a plan",
+    "",
+    "Talk to Our Team",
     "Tell us what you’re working towards and we’ll help you understand the next step.",
   ),
-  advisorCta: ask("Speak to an Advisor"),
+  advisorCta: ask("Talk to Our Team"),
   disclaimer:
     "Loan eligibility and terms are subject to assessment and applicable policies.",
 }));
@@ -306,33 +336,34 @@ export const draft: Draft = {
   },
   sections: [
     section("bar", "Top information bar", {
-      left: "Finance solutions for your next big step",
+      left: "A Trusted Financial Partner for Individuals & Small Businesses",
       right: "Need help?",
-      icon: "Sparkles",
-      cta: go("Talk to our team", "#contact"),
+      icon: "Phone",
+      cta: go("Contact Our Team", "/contact"),
     }),
     section("header", "Header & Navigation", {
       logo,
       items: nav([
         ["Home", "#home"],
         ["Our Loans", "/services"],
-        ["About Us", "#about"],
         ["Customer Stories", "#stories"],
-        ["Insights", "#insights"],
+        ["Financial Saathi", "#videos"],
+        ["About Us", "#about"],
         ["Contact", "/contact"],
       ]),
       loanMenu: true,
       loanMenuUrl: "/services",
-      outline: go("Explore Loans", "/services"),
+      outline: go("English  |  हिन्दी", "#home"),
       primary: ask("Apply Now"),
     }),
     section("hero", "Hero Slides", {
       autoplay: false,
-      initialSlide: 2,
+      initialSlide: 1,
       delay: 7000,
       slides,
     }),
     section("trust", "Trust Highlights", {
+      homeHighlights,
       caption: "Finance that moves with you",
       items: tiles([
         ["Personal guidance", "Compass"],

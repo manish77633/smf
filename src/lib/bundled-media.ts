@@ -9,4 +9,10 @@ export const bundledMedia = [
   ["checklist.jpg", "People reviewing paperwork at a table"],
   ["compare.jpg", "Person using a card and laptop"],
   ["home.jpg", "House model beside keys"],
+  ["reference-hero.webp", "Tailor beside her sewing machine"],
+  ["reference-shop.webp", "Shopkeeper in his store"],
+  ["reference-sewing.webp", "Tailor working with pink fabric"],
+  ["reference-dairy.webp", "Dairy farmer with a buffalo"],
+  ["reference-family.webp", "Parents with their daughter"],
+  ["reference-emi.webp", "Calculator and pen"],
 ].map(([file, alt]) => ({ url: "/images/" + file, alt }));

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { publicLanguage, localize } from "@/lib/public-language";
 import { Home } from "@/components/home";
 import { getSite } from "@/lib/site";
 import { homeMetadata, structured } from "@/lib/metadata";
@@ -28,7 +29,7 @@ export default async function Page() {
         />
       )}
       <Home
-        site={site}
+        site={localize(site, await publicLanguage())}
         preview={
           process.env.NODE_ENV === "development" && !process.env.MONGODB_URI
         }

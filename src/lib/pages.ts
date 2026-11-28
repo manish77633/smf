@@ -10,12 +10,14 @@ import {
   slug,
   ordered,
   sections,
+  detailField,
 } from "./content";
 import { draft, emptySeo } from "./seed-content";
 const card = ordered.extend({
   title: z.string().max(240),
   description: z.string().max(4000),
   icon: z.string().max(80),
+  cta: action.optional(),
 });
 export const formFields = sections.contact.pick({
   formTitle: true,
@@ -73,6 +75,7 @@ export const pageBlock = z.object({
     "highlights",
     "checklist",
     "notice",
+    "custom",
   ]),
   intro: heading,
   cta: action,
@@ -89,6 +92,7 @@ export const pageBlock = z.object({
   dark: z.boolean().optional(),
   listedLoansOnly: z.boolean().optional(),
   fallbackTitle: z.string().max(240).optional(),
+  fields: list(detailField).optional(),
 });
 export const editablePage = z.object({
   title: z.string().min(1).max(140),

@@ -24,12 +24,19 @@ import {
   emptyBlock,
   formFields,
   pageBlock,
+  servicesPage,
+  contactPage,
+  businessLoanPage,
   type EditablePage,
   type PageBlock,
 } from "@/lib/pages";
 import { editPage } from "@/app/admin/page-actions";
 const introOnly = pageBlock.pick({ intro: true });
 const fields = {
+  custom: introOnly.extend({
+    ...pageBlock.pick({ photo: true, body: true, cta: true, icon: true }).shape,
+    fields: pageBlock.shape.fields.unwrap(),
+  }),
   hero: introOnly.extend(
     pageBlock.pick({
       photo: true,
@@ -82,6 +89,7 @@ const fields = {
   }),
 };
 const labels: Record<PageBlock["type"], string> = {
+  custom: "Custom content",
   hero: "Hero",
   breadcrumb: "Breadcrumb",
   services: "Loan categories",
@@ -98,6 +106,29 @@ const labels: Record<PageBlock["type"], string> = {
 };
 const secondary =
   "inline-flex items-center justify-center gap-1.5 rounded-md border border-rule bg-white px-2.5 py-1.5 text-xs font-bold disabled:opacity-40";
+function newSection(type: PageBlock["type"]): PageBlock {
+  const id = crypto.randomUUID();
+  const label = labels[type];
+  const template = [servicesPage, contactPage, businessLoanPage]
+    .flatMap((page) => page.sections)
+    .find((section) => section.type === type);
+  if (template) return { ...structuredClone(template), id, label, visible: true };
+  const block = emptyBlock(type, id, label);
+  if (type === "custom") {
+    return {
+      ...block,
+      intro: { ...block.intro, heading: "New content section", description: "Introduce this section in a sentence." },
+      cta: { label: "Contact us", url: "/contact", enquiry: false },
+      icon: "Info",
+      fields: [{ label: "Key detail", description: "Describe what visitors should know.", icon: "Check", order: 0, visible: true }],
+    };
+  }
+  return {
+    ...block,
+    intro: { ...block.intro, heading: label },
+    ...(type === "richText" ? { body: "<p>Add the information visitors need here.</p>" } : {}),
+  };
+}
 export default function PageEditor({
   initial,
   initialRevision,
@@ -123,7 +154,7 @@ export default function PageEditor({
     [revision, setRevision] = useState(initialRevision),
     [live, setLive] = useState(published);
   const [pending, start] = useTransition(),
-    [kind, setKind] = useState<PageBlock["type"]>("richText"),
+    [kind, setKind] = useState<PageBlock["type"]>("custom"),
     [error, setError] = useState("");
   const dirty = JSON.stringify(doc) !== JSON.stringify(saved);
   useEffect(() => {
@@ -520,7 +551,7 @@ export default function PageEditor({
                 ...d,
                 sections: [
                   ...d.sections,
-                  emptyBlock(kind, crypto.randomUUID(), labels[kind]),
+                  newSection(kind),
                 ],
               }))
             }
